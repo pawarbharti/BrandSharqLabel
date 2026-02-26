@@ -22,7 +22,7 @@ export default function ShopPage() {
       <Box
         sx={{
           width: "100%",
-          height: "75vh",
+          height: "50vh",
           backgroundImage: "url('/shop-hero.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -67,7 +67,7 @@ export default function ShopPage() {
           <Typography
             sx={{
               letterSpacing: 6,
-              color: "rgba(207,162,146,0.9)",
+              color: "#df8b6f",
               fontWeight: 300,
               mb: 3,
             }}
@@ -83,14 +83,13 @@ export default function ShopPage() {
               mb: 4,
             }}
           >
-            Luxury is not what you wear.
-            It is how you carry it.
+            Luxury is not what you wear. It is how you carry it.
           </Typography>
 
           <Button
             variant="contained"
             sx={{
-              backgroundColor: "rgba(207,162,146,0.9)",
+              backgroundColor: "#df8b6f",
               color: "#131A23",
               px: 5,
               py: 1.5,
@@ -107,7 +106,7 @@ export default function ShopPage() {
       </Box>
 
       {/* ===== EDITORIAL QUOTE SECTION ===== */}
-      <Container sx={{ py: 10 }}>
+      <Container sx={{ py: 3 }}>
         <Typography
           variant="h5"
           sx={{
@@ -123,13 +122,13 @@ export default function ShopPage() {
         </Typography>
       </Container>
 
-      <Divider sx={{ width: "60%", mx: "auto", mb: 8 }} />
+      <Divider sx={{ width: "60%", mx: "auto", mb: 3 }} />
 
       {/* ===== PRODUCTS SECTION ===== */}
       <Box
         sx={{
           bgcolor: isDark ? "#121212" : "#f1ebe8",
-          py: 10,
+          py: 2,
         }}
       >
         <Container maxWidth="xl">
@@ -159,7 +158,7 @@ export default function ShopPage() {
       <Box
         sx={{
           bgcolor: isDark ? "#121212" : "#f1ebe8",
-          py: 12,
+          py: 5,
           textAlign: "center",
           px: 3,
         }}
@@ -167,10 +166,10 @@ export default function ShopPage() {
         <Typography
           variant="h4"
           sx={{
-            mb: 3,
+            mb: 1,
             fontWeight: 600,
             letterSpacing: 3,
-            color: "rgba(207,162,146,0.9)",
+            color: "#df8b6f",
           }}
         >
           More Than Fashion

@@ -35,125 +35,122 @@ export default function CartPage() {
     0
   );
 
+  const shipping = 0;
+  const total = subtotal + shipping;
+
   return (
     <Box
       sx={{
-        bgcolor: isDark ? "#0e141b" : "#f1ebe8",
+        bgcolor: isDark ? "#0f1419" : "rgba(207,162,146,0.05)",
         minHeight: "100vh",
-        py: 12,
+        py: 10,
         px: { xs: 2, md: 8 },
       }}
     >
-      {/* Page Title */}
+      {/* Title */}
       <Typography
         variant="h4"
         sx={{
-          mb: 10,
+          mb: 8,
           letterSpacing: 4,
           fontWeight: 600,
           textAlign: "center",
-          color: "#E6C2B6",
+          color: "#df8b6f",
         }}
       >
         YOUR CART
       </Typography>
 
-      {/* CENTERED WRAPPER */}
-      <Box
-        sx={{
-          maxWidth: "1400px",
-          margin: "0 auto",
-        }}
-      >
-        <Grid container spacing={8} justifyContent="center">
+      <Box sx={{ maxWidth: "1300px", mx: "auto" }}>
+        <Grid container spacing={6}>
+          
           {/* CART ITEMS */}
           <Grid item xs={12} md={8}>
-            {cart.map((item) => (
-              <Box
-                key={item.id}
-                sx={{
-                  display: "flex",
-                  gap: 5,
-                  mb: 6,
-                  p: 5,
-                  bgcolor: isDark ? "#121a22" : "#ffffff",
-                  borderRadius: 4,
-                  boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-6px)",
-                  },
-                }}
-              >
+            {cart.map((item, index) => (
+              <Box key={item.id} sx={{ mb: 5 }}>
                 <Box
-                  component="img"
-                  src={item.image}
-                  alt={item.name}
                   sx={{
-                    width: 220,
-                    height: 260,
-                    objectFit: "cover",
+                    display: "flex",
+                    gap: 4,
+                    p: 4,
+                    bgcolor: isDark ? "#161c22" : "#ffffff",
                     borderRadius: 3,
+                    border: "1px solid rgba(207,162,146,0.15)",
                   }}
-                />
-
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography
+                >
+                  <Box
+                    component="img"
+                    src={item.image}
+                    alt={item.name}
                     sx={{
-                      fontSize: "22px",
-                      fontWeight: 600,
-                      mb: 2,
-                      color: isDark ? "#fff" : "#131A23",
-                    }}
-                  >
-                    {item.name}
-                  </Typography>
-
-                  <Typography sx={{ opacity: 0.6, mb: 3 }}>
-                    Quantity: {item.quantity}
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      fontSize: "20px",
-                      fontWeight: 600,
-                      color: "#E6C2B6",
-                      mb: 3,
-                    }}
-                  >
-                    ₹{item.price}
-                  </Typography>
-
-                  <Button
-                    sx={{
-                      px: 4,
-                      py: 1,
-                      border: "1px solid #CFA292",
-                      color: "#CFA292",
+                      width: 180,
+                      height: 220,
+                      objectFit: "cover",
                       borderRadius: 2,
-                      "&:hover": {
-                        bgcolor: "#CFA292",
-                        color: "#131A23",
-                      },
                     }}
-                  >
-                    Remove
-                  </Button>
+                  />
+
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography
+                      sx={{
+                        fontSize: "20px",
+                        fontWeight: 600,
+                        mb: 1,
+                      }}
+                    >
+                      {item.name}
+                    </Typography>
+
+                    <Typography sx={{ opacity: 0.6, mb: 2 }}>
+                      Quantity: {item.quantity}
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        fontSize: "18px",
+                        fontWeight: 600,
+                        color: "#CFA292",
+                      }}
+                    >
+                      ₹{item.price}
+                    </Typography>
+
+                    <Button
+                      sx={{
+                        mt: 3,
+                        px: 3,
+                        py: 0.8,
+                        fontSize: "12px",
+                        letterSpacing: 1,
+                        border: "1px solid rgba(207,162,146,0.5)",
+                        color: "#CFA292",
+                        "&:hover": {
+                          bgcolor: "rgba(207,162,146,0.1)",
+                        },
+                      }}
+                    >
+                      REMOVE
+                    </Button>
+                  </Box>
                 </Box>
+
+                {index !== cart.length - 1 && (
+                  <Divider sx={{ mt: 5, opacity: 0.3 }} />
+                )}
               </Box>
             ))}
           </Grid>
 
-          {/* SUMMARY */}
+          {/* ORDER SUMMARY */}
           <Grid item xs={12} md={4}>
             <Box
               sx={{
-                p: 6,
-                bgcolor: isDark ? "#121a22" : "#ffffff",
-                borderRadius: 4,
-                boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
+                p: 5,
+                bgcolor: isDark ? "#161c22" : "#ffffff",
+                borderRadius: 3,
+                border: "1px solid rgba(207,162,146,0.15)",
                 position: "sticky",
-                top: 120,
+                top: 100,
               }}
             >
               <Typography
@@ -161,43 +158,54 @@ export default function CartPage() {
                   mb: 4,
                   fontWeight: 600,
                   letterSpacing: 2,
-                  fontSize: "18px",
-                  color: isDark ? "#fff" : "#131A23",
                 }}
               >
                 ORDER SUMMARY
               </Typography>
 
-              <Divider sx={{ mb: 3 }} />
-
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 2,
-                }}
-              >
-                <Typography>Subtotal</Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                <Typography sx={{ opacity: 0.7 }}>Subtotal</Typography>
                 <Typography>₹{subtotal}</Typography>
               </Box>
 
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+                <Typography sx={{ opacity: 0.7 }}>Shipping</Typography>
+                <Typography>
+                  {shipping === 0 ? "Free" : `₹${shipping}`}
+                </Typography>
+              </Box>
+
               <Divider sx={{ my: 3 }} />
+
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 4 }}>
+                <Typography sx={{ fontWeight: 600 }}>Total</Typography>
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    color: "#CFA292",
+                    fontSize: "18px",
+                  }}
+                >
+                  ₹{total}
+                </Typography>
+              </Box>
 
               <Button
                 fullWidth
                 variant="contained"
                 sx={{
-                  backgroundColor: "#E6C2B6",
+                  backgroundColor: "#CFA292",
                   color: "#131A23",
-                  py: 1.8,
+                  py: 1.6,
                   fontWeight: 600,
-                  borderRadius: 3,
+                  letterSpacing: 1,
+                  borderRadius: 2,
                   "&:hover": {
-                    backgroundColor: "#d8b2a4",
+                    backgroundColor: "#df8b6f",
                   },
                 }}
               >
-                Proceed to Checkout
+                PROCEED TO CHECKOUT
               </Button>
             </Box>
           </Grid>

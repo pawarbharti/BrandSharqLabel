@@ -46,7 +46,7 @@ export default function ProductCard({ product }) {
         }}
       >
         {isWishlisted ? (
-          <FavoriteIcon sx={{ color: "rgba(207,162,146,0.8)" }} />
+          <FavoriteIcon sx={{ color: "#df8b6f" }} />
         ) : (
           <FavoriteBorderIcon />
         )}
