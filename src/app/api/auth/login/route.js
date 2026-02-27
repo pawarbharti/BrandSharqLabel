@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createSession, loginUser, sanitizeUser } from "@/lib/auth";
 
 export async function POST(req) {
   try {
@@ -7,12 +8,14 @@ export async function POST(req) {
       return NextResponse.json({ error: "Missing email or password" }, { status: 400 });
     }
 
-    // Demo: accept any credentials and return a fake token/user
-    const user = { id: `user_${Date.now()}`, name: "Demo User", email };
-    const token = `demo-token-${Date.now()}`;
+    const user = loginUser({ email, password });
+    const token = createSession(user.id);
 
-    return NextResponse.json({ user, token });
+    return NextResponse.json({ user: sanitizeUser(user), token });
   } catch (err) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return NextResponse.json(
+      { error: err.message || "Invalid request" },
+      { status: 400 }
+    );
   }
 }

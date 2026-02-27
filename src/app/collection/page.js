@@ -6,14 +6,14 @@ import {
   Typography,
   Box,
   Divider,
+  CircularProgress,
 } from "@mui/material";
-import { products } from "../../data/products";
 import ProductCard from "../../components/product/ProductCard";
+import { useProducts } from "@/hooks/useProducts";
 
 export default function CollectionPage() {
-  const signature = products.filter(
-    (p) => p.collection === "Signature"
-  );
+  const { products, loading, error } = useProducts();
+  const signature = products.filter((p) => p.collection === "Signature");
 
   return (
     <Box sx={{ bgcolor: "background.default", color: "text.primary" }}>
@@ -79,13 +79,23 @@ export default function CollectionPage() {
 
       {/* 🛍 Product Grid */}
       <Container sx={{ pb: 10 }}>
-        <Grid container spacing={4}>
-          {signature.map((product) => (
-            <Grid item xs={12} sm={6} md={4} key={product.id}>
-              <ProductCard product={product} />
-            </Grid>
-          ))}
-        </Grid>
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Typography sx={{ textAlign: "center", opacity: 0.8 }}>
+            {error}
+          </Typography>
+        ) : (
+          <Grid container spacing={4}>
+            {signature.map((product) => (
+              <Grid item xs={12} sm={6} md={4} key={product.id}>
+                <ProductCard product={product} />
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Container>
 
       {/* 📷 Editorial Image Section */}

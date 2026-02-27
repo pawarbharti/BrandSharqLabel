@@ -1,11 +1,23 @@
 "use client";
 
 import { useContext } from "react";
+import { useRouter } from "next/navigation";
 import { WishlistContext } from "../../context/WishlistContext";
 import { Box, Typography, Grid, Card, CardMedia, CardContent, Button } from "@mui/material";
 
 export default function WishlistPage() {
+  const router = useRouter();
   const { wishlist, removeFromWishlist } = useContext(WishlistContext);
+
+  const handleRemove = async (id) => {
+    try {
+      await removeFromWishlist(id);
+    } catch (err) {
+      if (err.message === "Unauthorized") {
+        router.push("/login");
+      }
+    }
+  };
 
   return (
     <Box sx={{ p: 6, bgcolor: "background.default", color: "text.primary" }}>
@@ -29,12 +41,12 @@ export default function WishlistPage() {
                 <CardContent>
                   <Typography variant="h6">{product.name}</Typography>
                   <Typography sx={{ mb: 2 }}>
-                    ${product.price}
+                    ₹{product.price}
                   </Typography>
 
                   <Button
                     variant="outlined"
-                    onClick={() => removeFromWishlist(product.id)}
+                    onClick={() => handleRemove(product.id)}
                   >
                     Remove
                   </Button>

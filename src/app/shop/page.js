@@ -7,14 +7,16 @@ import {
   Box,
   Button,
   Divider,
+  CircularProgress,
 } from "@mui/material";
-import { products } from "../../data/products";
 import ProductCard from "../../components/product/ProductCard";
 import { useTheme } from "@mui/material/styles";
+import { useProducts } from "@/hooks/useProducts";
 
 export default function ShopPage() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
+  const { products, loading, error } = useProducts();
 
   return (
     <>
@@ -144,13 +146,23 @@ export default function ShopPage() {
             Discover The Collection
           </Typography>
 
-          <Grid container spacing={5}>
-            {products.map((product) => (
-              <Grid item xs={12} sm={6} md={3} key={product.id}>
-                <ProductCard product={product} />
-              </Grid>
-            ))}
-          </Grid>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+              <CircularProgress />
+            </Box>
+          ) : error ? (
+            <Typography sx={{ textAlign: "center", opacity: 0.8 }}>
+              {error}
+            </Typography>
+          ) : (
+            <Grid container spacing={5}>
+              {products.map((product) => (
+                <Grid item xs={12} sm={6} md={3} key={product.id}>
+                  <ProductCard product={product} />
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </Container>
       </Box>
 

@@ -3,13 +3,13 @@
 import {
   Container,
   Grid,
-  Typography,
+  Typography, Box, CircularProgress,
   Box,
   Divider,
 } from "@mui/material";
-import { products } from "../../data/products";
 import ProductCard from "../../components/product/ProductCard";
 import { useTheme } from "@mui/material/styles";
+import { useProducts } from "@/hooks/useProducts";
 
 export default function NewArrivalsPage() {
   const theme = useTheme();

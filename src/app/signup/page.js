@@ -18,6 +18,7 @@ export default function SignupPage() {
   const { signup } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -27,8 +28,8 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
     try {
-      await signup(name, email, password);
-      router.push("/account");
+      await signup(name, email, password, phone);
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err.message || "Signup failed");
     } finally {
@@ -65,6 +66,14 @@ export default function SignupPage() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+
+        <TextField
+          label="Phone (optional)"
+          fullWidth
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
           sx={{ mb: 2 }}
         />
 

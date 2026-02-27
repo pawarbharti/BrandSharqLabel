@@ -1,21 +1,38 @@
 "use client";
 
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
 export const WishlistContext = createContext();
 
 export default function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
 
-  const addToWishlist = (product) => {
-    const exists = wishlist.find((item) => item.id === product.id);
-    if (!exists) {
-      setWishlist([...wishlist, product]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("wishlist_items");
+      if (raw) {
+        setWishlist(JSON.parse(raw));
+      }
+    } catch (e) {
+      setWishlist([]);
     }
+  }, []);
+
+  const addToWishlist = async (product) => {
+    setWishlist((prev) => {
+      const exists = prev.some((item) => item.id === product.id);
+      const next = exists ? prev : [...prev, product];
+      localStorage.setItem("wishlist_items", JSON.stringify(next));
+      return next;
+    });
   };
 
-  const removeFromWishlist = (id) => {
-    setWishlist(wishlist.filter((item) => item.id !== id));
+  const removeFromWishlist = async (id) => {
+    setWishlist((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      localStorage.setItem("wishlist_items", JSON.stringify(next));
+      return next;
+    });
   };
 
   return (

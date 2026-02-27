@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Container,
   Typography,
@@ -8,31 +10,88 @@ import {
   CardContent,
   Divider,
   Chip,
+  CircularProgress,
+  Button,
 } from "@mui/material";
-
-const orders = [
-  {
-    id: "ORD-1001",
-    date: "12 Feb 2026",
-    status: "Delivered",
-    total: 3499,
-    address: "Pune, India",
-    items: [
-      { name: "Black Premium Shirt", qty: 1 },
-      { name: "Classic White Tee", qty: 2 },
-    ],
-  },
-  {
-    id: "ORD-1002",
-    date: "20 Feb 2026",
-    status: "On the Way",
-    total: 1999,
-    address: "Pune, India",
-    items: [{ name: "Luxury Oversized Tee", qty: 1 }],
-  },
-];
+import { useAuth } from "@/context/AuthContext";
+import { getAccountApi } from "@/lib/api";
 
 export default function AccountPage() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadAccount() {
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getAccountApi();
+        if (active) {
+          const profile = data.profile?.user || data.profile?.data || data.profile;
+          const orderList =
+            data.orders?.orders || data.orders?.data || data.orders || [];
+          setUser(profile || null);
+          setOrders(Array.isArray(orderList) ? orderList : []);
+        }
+      } catch (err) {
+        if (active) setError(err.message || "Failed to load account");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    loadAccount();
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated]);
+
+  if (isLoading) {
+    return (
+      <Container sx={{ py: 6, display: "flex", justifyContent: "center" }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Container sx={{ py: 6 }}>
+        <Typography variant="h4" gutterBottom>
+          My Account
+        </Typography>
+        <Typography sx={{ mb: 2 }}>Please sign in to view your account.</Typography>
+        <Button component={Link} href="/login" variant="contained">
+          Go to Login
+        </Button>
+      </Container>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Container sx={{ py: 6, display: "flex", justifyContent: "center" }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container sx={{ py: 6 }}>
+        <Typography>{error}</Typography>
+      </Container>
+    );
+  }
+
   return (
     <Container sx={{ py: 6 }}>
       <Typography variant="h4" gutterBottom>
@@ -40,9 +99,8 @@ export default function AccountPage() {
       </Typography>
 
       <Box sx={{ mt: 3, mb: 5 }}>
-        <Typography>Name: Bharti Pawar</Typography>
-        <Typography>Email: bharti@example.com</Typography>
-        <Typography>Saved Address: Pune, India</Typography>
+        <Typography>Name: {user?.name}</Typography>
+        <Typography>Email: {user?.email}</Typography>
       </Box>
 
       <Typography variant="h5" sx={{ mb: 3 }}>
@@ -65,9 +123,7 @@ export default function AccountPage() {
                 alignItems: "center",
               }}
             >
-              <Typography variant="h6">
-                Order ID: {order.id}
-              </Typography>
+              <Typography variant="h6">Order ID: {order.id}</Typography>
 
               <Chip
                 label={order.status}
@@ -83,18 +139,17 @@ export default function AccountPage() {
             </Box>
 
             <Typography sx={{ mt: 1, opacity: 0.7 }}>
-              Placed on: {order.date}
+              Placed on: {new Date(order.date).toLocaleDateString()}
             </Typography>
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography sx={{ mb: 1, fontWeight: 500 }}>
-              Items:
-            </Typography>
+            <Typography sx={{ mb: 1, fontWeight: 500 }}>Items:</Typography>
 
-            {order.items.map((item, index) => (
+            {(order.items || []).map((item, index) => (
               <Typography key={index} sx={{ opacity: 0.8 }}>
-                {item.name} (Qty: {item.qty})
+                {item.name || item.productName || item.product?.name || "Item"} (Qty:{" "}
+                {item.qty || item.quantity || 1})
               </Typography>
             ))}
 
