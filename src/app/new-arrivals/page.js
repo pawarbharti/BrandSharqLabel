@@ -3,7 +3,7 @@
 import {
   Container,
   Grid,
-  Typography, Box, CircularProgress,
+  Typography, CircularProgress,
   Box,
   Divider,
 } from "@mui/material";
@@ -14,7 +14,7 @@ import { useProducts } from "@/hooks/useProducts";
 export default function NewArrivalsPage() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-
+const { products } = useProducts();
   const newProducts = products.filter((p) => p.isNew);
 
   return (
