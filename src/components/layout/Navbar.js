@@ -11,11 +11,11 @@ import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const { toggleColorMode, mode } = useContext(ColorModeContext);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/");
   };
 
@@ -114,6 +114,19 @@ export default function Navbar() {
           >
             Account
           </Button>
+          {isAdmin ? (
+            <Button
+              component={Link}
+              href="/admin"
+              sx={{
+                fontSize: "1.5rem",
+                letterSpacing: 2,
+                fontWeight: 500,
+              }}
+            >
+              Admin
+            </Button>
+          ) : null}
         </div>
 
         {/* Dark Mode Toggle */}

@@ -1,34 +1,16 @@
 "use client";
 
+import { useContext } from "react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@mui/material/styles";
-import {
-  Typography,
-  Button,
-  Box,
-  Grid,
-  Divider,
-} from "@mui/material";
+import { Typography, Button, Box, Grid, Divider } from "@mui/material";
+import { CartContext } from "@/context/CartContext";
 
 export default function CartPage() {
   const theme = useTheme();
+  const router = useRouter();
   const isDark = theme.palette.mode === "dark";
-
-  const cart = [
-    {
-      id: 1,
-      name: "Midnight Structured Blazer",
-      price: 7499,
-      image: "/product1.jpg",
-      quantity: 1,
-    },
-    {
-      id: 2,
-      name: "Signature Slim Trousers",
-      price: 4999,
-      image: "/product2.jpg",
-      quantity: 1,
-    },
-  ];
+  const { cart, removeFromCart } = useContext(CartContext);
 
   const subtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,

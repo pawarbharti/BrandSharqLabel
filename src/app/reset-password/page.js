@@ -1,37 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
+  Alert,
+  Box,
+  Button,
   Container,
   TextField,
-  Button,
   Typography,
-  Box,
-  Alert,
 } from "@mui/material";
-import { useAuth } from "@/context/AuthContext";
-import { isAdminUser } from "@/lib/authRole";
+import { authApi } from "@/lib/api";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const { login } = useAuth();
-  const [email, setEmail] = useState("");
+export default function ResetPasswordPage() {
+  const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError("");
+    setSuccess("");
     setLoading(true);
     try {
-      const data = await login(email, password);
-      const loggedInUser = data?.user || null;
-      router.push(isAdminUser(loggedInUser) ? "/admin" : "/account");
+      await authApi.resetPassword({ token, password });
+      setSuccess("Password reset successful. You can login now.");
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError(err.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }
@@ -40,28 +37,30 @@ export default function LoginPage() {
   return (
     <Container sx={{ py: 6, maxWidth: 600 }}>
       <Typography variant="h4" gutterBottom>
-        Login
+        Reset Password
       </Typography>
-
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-        {error && (
+      <Box component="form" onSubmit={handleSubmit}>
+        {error ? (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
-        )}
+        ) : null}
+        {success ? (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {success}
+          </Alert>
+        ) : null}
 
         <TextField
-          label="Email"
-          type="email"
+          label="Reset Token"
           fullWidth
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
           sx={{ mb: 2 }}
         />
-
         <TextField
-          label="Password"
+          label="New Password"
           type="password"
           fullWidth
           required
@@ -71,14 +70,11 @@ export default function LoginPage() {
         />
 
         <Button type="submit" variant="contained" disabled={loading}>
-          {loading ? "Signing in..." : "Sign in"}
+          {loading ? "Updating..." : "Reset Password"}
         </Button>
 
         <Typography sx={{ mt: 2 }}>
-          Don't have an account? <Link href="/signup">Sign up</Link>
-        </Typography>
-        <Typography sx={{ mt: 1 }}>
-          Forgot password? <Link href="/forgot-password">Reset it</Link>
+          Back to <Link href="/login">Login</Link>
         </Typography>
       </Box>
     </Container>
