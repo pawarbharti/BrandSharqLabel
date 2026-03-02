@@ -8,6 +8,11 @@ import {
   Box,
   Badge,
   Container,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -15,7 +20,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import MenuIcon from "@mui/icons-material/Menu";
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ColorModeContext } from "../../context/ThemeContext";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,6 +30,7 @@ import { isAdminUser } from "@/lib/authRole";
 
 export default function Navbar() {
   const { toggleColorMode, mode } = useContext(ColorModeContext);
+  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const canSeeAdmin = Boolean(isAuthenticated && isAdminUser(user));
@@ -68,7 +74,6 @@ export default function Navbar() {
     >
       <Container maxWidth="xl">
         <Toolbar sx={{ justifyContent: "space-between" }}>
-          
           {/* Logo */}
           <Link href="/">
             <Image
@@ -95,7 +100,6 @@ export default function Navbar() {
 
           {/* Right Section */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-
             {/* Wishlist */}
             <IconButton component={Link} href="/wishlist">
               <Badge badgeContent={0} color="error">
@@ -123,7 +127,10 @@ export default function Navbar() {
                   </Button>
                 )}
 
-                <Button onClick={handleLogout} sx={navLinkStyle}>
+                <Button
+                  onClick={() => setOpenLogoutDialog(true)}
+                  sx={navLinkStyle}
+                >
                   Logout
                 </Button>
               </>
@@ -136,7 +143,7 @@ export default function Navbar() {
                   component={Link}
                   href="/signup"
                   variant="contained"
-                sx={{
+                  sx={{
                     borderRadius: "30px",
                     px: 3,
                     textTransform: "none",
@@ -161,6 +168,39 @@ export default function Navbar() {
           </Box>
         </Toolbar>
       </Container>
+      <Dialog
+        open={openLogoutDialog}
+        onClose={() => setOpenLogoutDialog(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "20px",
+            px: 2,
+            py: 1.5,
+          },
+        }}
+      >
+        <DialogTitle>Confirm Logout</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to logout?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenLogoutDialog(false)}>Cancel</Button>
+          <Button
+            onClick={async () => {
+              setOpenLogoutDialog(false);
+              await handleLogout();
+            }}
+            color="error"
+            variant="contained"
+          >
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppBar>
   );
 }
