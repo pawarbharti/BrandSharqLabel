@@ -27,6 +27,22 @@ export default function CartProvider({ children }) {
       id: item.productId || item.id || item.product?._id || item.product?.id,
       name: item.name || item.product?.name || "Product",
       price: item.price || item.product?.price || 0,
+      originalPrice:
+        item.originalPrice ||
+        item.product?.originalPrice ||
+        item.product?.mrp ||
+        item.price ||
+        item.product?.price ||
+        0,
+      category: item.category || item.product?.category || "General",
+      description:
+        item.description ||
+        item.product?.description ||
+        item.product?.shortDescription ||
+        "",
+      collection: item.collection || item.product?.collection || "",
+      size: item.size || item.variant?.size || item.product?.size || "",
+      color: item.color || item.variant?.color || item.product?.color || "",
       image: item.image || item.product?.images?.[0] || "/homepic.jpeg",
       quantity: item.quantity || 1,
     }));
@@ -67,13 +83,30 @@ export default function CartProvider({ children }) {
     setCart(normalizeCart(data));
   };
 
+  const updateCartQuantity = async (id, quantity) => {
+    const nextQuantity = Math.max(1, Number(quantity) || 1);
+    try {
+      const data = await cartApi.update({ productId: id, quantity: nextQuantity });
+      setCart(normalizeCart(data));
+    } catch (err) {
+      // Fallback for APIs that don't support update endpoint shape yet.
+      setCart((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, quantity: nextQuantity } : item
+        )
+      );
+    }
+  };
+
   const clearCart = async () => {
     const data = await cartApi.clear();
     setCart(normalizeCart(data));
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
+    <CartContext.Provider
+      value={{ cart, addToCart, removeFromCart, updateCartQuantity, clearCart }}
+    >
       {children}
     </CartContext.Provider>
   );

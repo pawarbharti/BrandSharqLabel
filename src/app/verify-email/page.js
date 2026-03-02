@@ -6,12 +6,11 @@ import Link from "next/link";
 import {
   Alert,
   Box,
-  Button,
   Container,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
+import { AppButton, AppInput, useToast } from "@/components/common";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -24,6 +23,7 @@ export default function VerifyEmailPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,10 +32,14 @@ export default function VerifyEmailPage() {
     setLoading(true);
     try {
       await verifyEmail(email, code);
-      setSuccess("Email verified successfully. Please login.");
+      const message = "Email verified successfully. Please login.";
+      setSuccess(message);
+      toast.success(message);
       setTimeout(() => router.push("/login"), 800);
     } catch (err) {
-      setError(err.message || "Verification failed");
+      const message = err.message || "Verification failed";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -62,27 +66,25 @@ export default function VerifyEmailPage() {
           </Alert>
         ) : null}
 
-        <TextField
+        <AppInput
           label="Email"
           type="email"
-          fullWidth
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           sx={{ mb: 2 }}
         />
-        <TextField
+        <AppInput
           label="OTP Code"
-          fullWidth
           required
           value={code}
           onChange={(e) => setCode(e.target.value)}
           sx={{ mb: 2 }}
         />
 
-        <Button type="submit" variant="contained" disabled={loading}>
+        <AppButton type="submit" disabled={loading}>
           {loading ? "Verifying..." : "Verify"}
-        </Button>
+        </AppButton>
 
         <Typography sx={{ mt: 2 }}>
           Already verified? <Link href="/login">Login</Link>

@@ -6,9 +6,11 @@ import { Box, Button, Container, Typography } from "@mui/material";
 const links = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/products", label: "Products" },
+  { href: "/admin/inventory", label: "Inventory" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/users", label: "Users" },
+  { href: "/admin/reviews", label: "Reviews" },
 ];
 
 export default function AdminShell({ title, children }) {

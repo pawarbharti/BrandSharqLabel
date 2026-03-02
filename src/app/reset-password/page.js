@@ -5,12 +5,11 @@ import Link from "next/link";
 import {
   Alert,
   Box,
-  Button,
   Container,
-  TextField,
   Typography,
 } from "@mui/material";
 import { authApi } from "@/lib/api";
+import { AppButton, AppInput, useToast } from "@/components/common";
 
 export default function ResetPasswordPage() {
   const [token, setToken] = useState("");
@@ -18,6 +17,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,9 +26,13 @@ export default function ResetPasswordPage() {
     setLoading(true);
     try {
       await authApi.resetPassword({ token, password });
-      setSuccess("Password reset successful. You can login now.");
+      const message = "Password reset successful. You can login now.";
+      setSuccess(message);
+      toast.success(message);
     } catch (err) {
-      setError(err.message || "Failed to reset password");
+      const message = err.message || "Failed to reset password";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -51,27 +55,25 @@ export default function ResetPasswordPage() {
           </Alert>
         ) : null}
 
-        <TextField
+        <AppInput
           label="Reset Token"
-          fullWidth
           required
           value={token}
           onChange={(e) => setToken(e.target.value)}
           sx={{ mb: 2 }}
         />
-        <TextField
+        <AppInput
           label="New Password"
           type="password"
-          fullWidth
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           sx={{ mb: 2 }}
         />
 
-        <Button type="submit" variant="contained" disabled={loading}>
+        <AppButton type="submit" disabled={loading}>
           {loading ? "Updating..." : "Reset Password"}
-        </Button>
+        </AppButton>
 
         <Typography sx={{ mt: 2 }}>
           Back to <Link href="/login">Login</Link>

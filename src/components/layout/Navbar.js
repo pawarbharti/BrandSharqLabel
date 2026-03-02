@@ -1,183 +1,166 @@
 "use client";
-import { AppBar, Toolbar, Button, IconButton, Box } from "@mui/material";
-import { useContext } from "react";
-import { ColorModeContext } from "../../context/ThemeContext";
+
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  IconButton,
+  Box,
+  Badge,
+  Container,
+} from "@mui/material";
+import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import MenuIcon from "@mui/icons-material/Menu";
+
+import { useContext } from "react";
+import { ColorModeContext } from "../../context/ThemeContext";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { isAdminUser } from "@/lib/authRole";
 
 export default function Navbar() {
   const { toggleColorMode, mode } = useContext(ColorModeContext);
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
+  const canSeeAdmin = Boolean(isAuthenticated && isAdminUser(user));
 
   const handleLogout = async () => {
     await logout();
     router.push("/");
   };
 
+  const navLinkStyle = {
+    position: "relative",
+    fontSize: "1.5rem",
+    fontWeight: 500,
+    textTransform: "none",
+    letterSpacing: 1,
+    px: 2,
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      width: 0,
+      height: "2px",
+      bottom: 0,
+      left: 0,
+      backgroundColor: "primary.main",
+      transition: "0.3s ease",
+    },
+    "&:hover::after": {
+      width: "100%",
+    },
+  };
+
   return (
     <AppBar
-      position="static"
+      position="sticky"
       elevation={0}
-      sx={{
-        background: "transparent",
-        borderBottom: "1px solid rgba(207,162,146,0.3)",
-      }}
+      sx={(theme) => ({
+        backdropFilter: "blur(12px)",
+        background: theme.palette.brand.navGlass,
+        borderBottom: `1px solid ${theme.palette.brand.borderSoft}`,
+      })}
     >
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-        {/* Logo */}
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+      <Container maxWidth="xl">
+        <Toolbar sx={{ justifyContent: "space-between" }}>
+          
+          {/* Logo */}
           <Link href="/">
             <Image
               src={mode === "dark" ? "/logo-dark.png" : "/logo-light.png"}
               alt="Sharq Label"
-              width={100}
+              width={110}
               height={50}
               style={{ cursor: "pointer" }}
             />
           </Link>
-        </Box>
 
-        {/* Navigation */}
-        <div>
-          <Button
-            component={Link}
-            href="/shop"
-            sx={{
-              fontSize: "1.5rem",
-              letterSpacing: 2,
-              fontWeight: 500,
-            }}
-          >
-            Shop
-          </Button>
-
-          <Button
-            component={Link}
-            href="/collection"
-            sx={{
-              fontSize: "1.5rem",
-              letterSpacing: 2,
-              fontWeight: 500,
-            }}
-          >
-            Collection
-          </Button>
-
-          <Button
-            component={Link}
-            href="/new-arrivals"
-            sx={{
-              fontSize: "1.5rem",
-              letterSpacing: 2,
-              fontWeight: 500,
-            }}
-          >
-            New
-          </Button>
-
-          <Button
-            component={Link}
-            href="/cart"
-            sx={{
-              fontSize: "1.5rem",
-              letterSpacing: 2,
-              fontWeight: 500,
-            }}
-          >
-            Cart
-          </Button>
-          <Button
-            component={Link}
-            href="/wishlist"
-            sx={{
-              fontSize: "1.5rem",
-              letterSpacing: 2,
-              fontWeight: 500,
-            }}
-          >
-            Wishlist
-          </Button>
-
-          <Button
-            component={Link}
-            href="/account"
-            sx={{
-              fontSize: "1.5rem",
-              letterSpacing: 2,
-              fontWeight: 500,
-            }}
-          >
-            Account
-          </Button>
-          {isAdmin ? (
-            <Button
-              component={Link}
-              href="/admin"
-              sx={{
-                fontSize: "1.5rem",
-                letterSpacing: 2,
-                fontWeight: 500,
-              }}
-            >
-              Admin
+          {/* Desktop Navigation */}
+          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
+            <Button component={Link} href="/shop" sx={navLinkStyle}>
+              Shop
             </Button>
-          ) : null}
-        </div>
+            <Button component={Link} href="/collection" sx={navLinkStyle}>
+              Collection
+            </Button>
+            <Button component={Link} href="/new-arrivals" sx={navLinkStyle}>
+              New Arrivals
+            </Button>
+          </Box>
 
-        {/* Dark Mode Toggle */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {isAuthenticated ? (
-            <>
-              <Button
-                component={Link}
-                href="/account"
-                sx={{ textTransform: "none" }}
-              >
-                {user?.name || "Account"}
-              </Button>
-              <Button onClick={handleLogout} sx={{ textTransform: "none" }}>
-                Logout
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                component={Link}
-                href="/login"
-                sx={{
-                  textTransform: "none",
-                  fontSize: "1.5rem",
-                  letterSpacing: 2,
-                  fontWeight: 500,
-                }}
-              >
-                Login
-              </Button>
-              <Button
-                component={Link}
-                href="/signup"
-                sx={{
-                  textTransform: "none",
-                  fontSize: "1.5rem",
-                  letterSpacing: 2,
-                  fontWeight: 500,
-                }}
-              >
-                Sign up
-              </Button>
-            </>
-          )}
+          {/* Right Section */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 
-          <IconButton onClick={toggleColorMode}>
-            {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
-        </Box>
-      </Toolbar>
+            {/* Wishlist */}
+            <IconButton component={Link} href="/wishlist">
+              <Badge badgeContent={0} color="error">
+                <FavoriteBorderIcon />
+              </Badge>
+            </IconButton>
+
+            {/* Cart */}
+            <IconButton component={Link} href="/cart">
+              <Badge badgeContent={0} color="error">
+                <ShoppingBagOutlinedIcon />
+              </Badge>
+            </IconButton>
+
+            {/* Auth Buttons */}
+            {isAuthenticated ? (
+              <>
+                <Button component={Link} href="/account" sx={navLinkStyle}>
+                  {user?.name?.split(" ")[0].toUpperCase()}
+                </Button>
+
+                {canSeeAdmin && (
+                  <Button component={Link} href="/admin" sx={navLinkStyle}>
+                    Admin
+                  </Button>
+                )}
+
+                <Button onClick={handleLogout} sx={navLinkStyle}>
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button component={Link} href="/login" sx={navLinkStyle}>
+                  Login
+                </Button>
+                <Button
+                  component={Link}
+                  href="/signup"
+                  variant="contained"
+                sx={{
+                    borderRadius: "30px",
+                    px: 3,
+                    textTransform: "none",
+                    background: (theme) =>
+                      `linear-gradient(45deg, ${theme.palette.brand.gradientStart}, ${theme.palette.brand.gradientEnd})`,
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
+
+            {/* Theme Toggle */}
+            <IconButton onClick={toggleColorMode}>
+              {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+
+            {/* Mobile Menu */}
+            <IconButton sx={{ display: { xs: "flex", md: "none" } }}>
+              <MenuIcon />
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </Container>
     </AppBar>
   );
 }

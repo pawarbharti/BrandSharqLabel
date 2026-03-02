@@ -97,6 +97,24 @@ export const cartApi = {
   clear: () => request("delete", "/api/cart/clear", null, null, "Failed to clear cart"),
 };
 
+export const wishlistApi = {
+  list: () => request("get", "/api/wishlist", null, null, "Failed to load wishlist"),
+  add: (payload) =>
+    request("post", "/api/wishlist", payload, null, "Failed to add wishlist item"),
+  remove: (productId) =>
+    request(
+      "delete",
+      `/api/wishlist/${productId}`,
+      null,
+      null,
+      "Failed to remove wishlist item"
+    ),
+};
+
+export const accountApi = {
+  get: () => request("get", "/api/account", null, null, "Failed to load account"),
+};
+
 export const usersApi = {
   getProfile: () =>
     request("get", "/api/users/profile", null, null, "Failed to load profile"),
@@ -130,9 +148,15 @@ export const reviewsApi = {
   create: (payload) =>
     request("post", "/api/reviews", payload, null, "Failed to create review"),
   listByProduct: (id) =>
-    request("get", `/api/reviews/${id}`, null, null, "Failed to load reviews"),
-  remove: (id) =>
-    request("delete", `/api/reviews/${id}`, null, null, "Failed to delete review"),
+    request("get", `/api/reviews/product/${id}`, null, null, "Failed to load reviews"),
+  remove: (reviewId) =>
+    request("delete", `/api/reviews/${reviewId}`, null, null, "Failed to delete review"),
+};
+
+export const returnsApi = {
+  create: (payload) =>
+    request("post", "/api/returns", payload, null, "Failed to create return request"),
+  my: () => request("get", "/api/returns/my", null, null, "Failed to load returns"),
 };
 
 export const ordersApi = {
@@ -170,6 +194,12 @@ export const paymentsApi = {
 export const adminApi = {
   users: () => request("get", "/api/admin/users", null, null, "Failed to load users"),
   orders: () => request("get", "/api/admin/orders", null, null, "Failed to load orders"),
+  orderById: (id) =>
+    request("get", `/api/admin/orders/${id}`, null, null, "Failed to load order details"),
+  updateOrder: (id, payload) =>
+    request("put", `/api/admin/orders/${id}`, payload, null, "Failed to update order"),
+  exportOrders: () =>
+    request("post", "/api/admin/orders", { action: "export" }, null, "Failed to export orders"),
   dashboardStats: () =>
     request(
       "get",
@@ -180,6 +210,17 @@ export const adminApi = {
     ),
   promote: (payload) =>
     request("post", "/api/admin/promote", payload, null, "Failed to promote user"),
+  updateUser: (id, payload) =>
+    request("put", `/api/admin/users/${id}`, payload, null, "Failed to update user"),
+  reviews: () => request("get", "/api/admin/reviews", null, null, "Failed to load reviews"),
+  updateReview: (id, payload) =>
+    request("put", `/api/admin/reviews/${id}`, payload, null, "Failed to update review"),
+  deleteReview: (id) =>
+    request("delete", `/api/admin/reviews/${id}`, null, null, "Failed to delete review"),
+  inventory: () =>
+    request("get", "/api/admin/inventory", null, null, "Failed to load inventory"),
+  updateInventory: (payload) =>
+    request("put", "/api/admin/inventory", payload, null, "Failed to update inventory"),
 };
 
 export async function loginApi(payload) {
@@ -192,6 +233,10 @@ export async function signupApi(payload) {
 
 export async function getProductsApi() {
   return productsApi.list();
+}
+
+export async function getProductByIdApi(id) {
+  return productsApi.getById(id);
 }
 
 export async function getCartApi() {
@@ -207,11 +252,27 @@ export async function removeFromCartApi(productId) {
 }
 
 export async function getAccountApi() {
-  const [profile, orders] = await Promise.all([
-    usersApi.getProfile(),
-    ordersApi.myOrders(),
-  ]);
-  return { profile, orders };
+  return accountApi.get();
+}
+
+export async function getWishlistApi() {
+  return wishlistApi.list();
+}
+
+export async function addToWishlistApi(payload) {
+  return wishlistApi.add(payload);
+}
+
+export async function removeFromWishlistApi(productId) {
+  return wishlistApi.remove(productId);
+}
+
+export async function getReturnsApi() {
+  return returnsApi.my();
+}
+
+export async function createReturnApi(payload) {
+  return returnsApi.create(payload);
 }
 
 export default api;

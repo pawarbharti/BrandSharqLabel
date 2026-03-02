@@ -21,6 +21,8 @@ export function createUser({ name, email, password }) {
     name: name?.trim() || "Sharq User",
     email: normalizedEmail,
     password,
+    role: "user",
+    isBlocked: false,
   };
 
   store.usersById[user.id] = user;
@@ -44,6 +46,9 @@ export function loginUser({ email, password }) {
   }
 
   const user = store.usersById[existingUserId];
+  if (user.isBlocked) {
+    throw new Error("Your account is blocked. Please contact support.");
+  }
   if (user.password !== password) {
     throw new Error("Invalid email or password");
   }
@@ -84,5 +89,21 @@ export function sanitizeUser(user) {
     id: user.id,
     name: user.name,
     email: user.email,
+    role: user.role || "user",
+    isBlocked: Boolean(user.isBlocked),
   };
+}
+
+export function isAdmin(user) {
+  return String(user?.role || "").toLowerCase() === "admin";
+}
+
+export function requireAuth(req) {
+  return getUserFromRequest(req);
+}
+
+export function requireAdmin(req) {
+  const session = getUserFromRequest(req);
+  if (!session || !isAdmin(session.user)) return null;
+  return session;
 }

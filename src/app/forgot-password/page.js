@@ -5,18 +5,18 @@ import Link from "next/link";
 import {
   Alert,
   Box,
-  Button,
   Container,
-  TextField,
   Typography,
 } from "@mui/material";
 import { authApi } from "@/lib/api";
+import { AppButton, AppInput, useToast } from "@/components/common";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,9 +25,13 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       await authApi.forgotPassword({ email });
-      setSuccess("If this email exists, reset instructions have been sent.");
+      const message = "If this email exists, reset instructions have been sent.";
+      setSuccess(message);
+      toast.success(message);
     } catch (err) {
-      setError(err.message || "Failed to send reset instructions");
+      const message = err.message || "Failed to send reset instructions";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -50,19 +54,18 @@ export default function ForgotPasswordPage() {
           </Alert>
         ) : null}
 
-        <TextField
+        <AppInput
           label="Email"
           type="email"
-          fullWidth
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           sx={{ mb: 2 }}
         />
 
-        <Button type="submit" variant="contained" disabled={loading}>
+        <AppButton type="submit" disabled={loading}>
           {loading ? "Submitting..." : "Send Reset Link"}
-        </Button>
+        </AppButton>
 
         <Typography sx={{ mt: 2 }}>
           Have token already? <Link href="/reset-password">Reset Password</Link>

@@ -1,9 +1,11 @@
+import "./globals.css";
 import ThemeContextProvider from "../context/ThemeContext";
-import CartProvider from "../context/CartContext"; // 👈 ADD THIS
+import CartProvider from "../context/CartContext";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import WishlistProvider from "@/context/WishlistContext";
 import AuthProvider from "@/context/AuthContext";
+import { ToastProvider } from "@/components/common";
 
 export default function RootLayout({ children }) {
   return (
@@ -11,13 +13,15 @@ export default function RootLayout({ children }) {
       <body>
         <ThemeContextProvider>
           <AuthProvider>
-            <CartProvider> {/* 👈 WRAP HERE */}
-              <WishlistProvider>
-                <Navbar />
-                {children}
-                <Footer />
-              </WishlistProvider>
-            </CartProvider>
+            <ToastProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <Navbar />
+                  {children}
+                  <Footer />
+                </WishlistProvider>
+              </CartProvider>
+            </ToastProvider>
           </AuthProvider>
         </ThemeContextProvider>
       </body>

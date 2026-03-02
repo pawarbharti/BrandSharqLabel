@@ -1,5 +1,7 @@
+"use client";
 import Link from "next/link";
-import { Box, Typography, Button, Container } from "@mui/material";
+import { Box, Typography, Container } from "@mui/material";
+import { AppButton } from "@/components/common";
 
 export default function HomePage() {
   return (
@@ -10,7 +12,7 @@ export default function HomePage() {
         alignItems: "center",
         position: "relative",
         overflow: "hidden",
-        color: "#fff",
+        color: "background.paper",
       }}
     >
       {/* 🎥 Background Video */}
@@ -41,7 +43,7 @@ export default function HomePage() {
           left: 0,
           width: "100%",
           height: "100%",
-          backgroundColor: "rgba(0,0,0,0.5)",
+          backgroundColor: (theme) => theme.palette.brand.overlaySoft,
           zIndex: 1,
         }}
       />
@@ -65,7 +67,7 @@ export default function HomePage() {
           sx={{
             mb: 1,
             letterSpacing: 5,
-            color: "#df8b6f",
+            color: "primary.main",
             fontWeight: 300,
             lineHeight: 1,
           }}
@@ -78,22 +80,9 @@ export default function HomePage() {
         </Typography>
 
         <Link href="/shop" style={{ textDecoration: "none" }}>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#df8b6f",
-              color: "#131A23",
-              px: 4,
-              py: 1.5,
-              fontWeight: 600,
-              letterSpacing: 1,
-              "&:hover": {
-                backgroundColor: "#d8b2a4",
-              },
-            }}
-          >
+          <AppButton sx={{ px: 4, py: 1.5, fontWeight: 600, letterSpacing: 1 }}>
             Explore Collection
-          </Button>
+          </AppButton>
         </Link>
       </Container>
     </Box>

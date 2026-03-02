@@ -5,14 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Container,
-  TextField,
-  Button,
   Typography,
   Box,
   Alert,
 } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
 import { isAdminUser } from "@/lib/authRole";
+import { AppButton, AppInput, useToast } from "@/components/common";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,6 +20,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,9 +29,12 @@ export default function LoginPage() {
     try {
       const data = await login(email, password);
       const loggedInUser = data?.user || null;
+      toast.success("Logged in successfully.");
       router.push(isAdminUser(loggedInUser) ? "/admin" : "/account");
     } catch (err) {
-      setError(err.message || "Login failed");
+      const message = err.message || "Login failed";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -50,29 +53,27 @@ export default function LoginPage() {
           </Alert>
         )}
 
-        <TextField
+        <AppInput
           label="Email"
           type="email"
-          fullWidth
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           sx={{ mb: 2 }}
         />
 
-        <TextField
+        <AppInput
           label="Password"
           type="password"
-          fullWidth
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           sx={{ mb: 2 }}
         />
 
-        <Button type="submit" variant="contained" disabled={loading}>
+        <AppButton type="submit" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
-        </Button>
+        </AppButton>
 
         <Typography sx={{ mt: 2 }}>
           Don't have an account? <Link href="/signup">Sign up</Link>

@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import {
   Alert,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Paper,
   Stack,
   Table,
@@ -21,6 +25,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const loadUsers = async () => {
     const data = await adminApi.users();
@@ -28,7 +33,19 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    loadUsers().catch((err) => setError(err.message || "Failed to load users"));
+    let active = true;
+    async function run() {
+      try {
+        const data = await adminApi.users();
+        if (active) setUsers(data?.users || data?.data || data || []);
+      } catch (err) {
+        if (active) setError(err.message || "Failed to load users");
+      }
+    }
+    run();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const promote = async (userId) => {
@@ -39,6 +56,27 @@ export default function AdminUsersPage() {
       await loadUsers();
     } catch (err) {
       setError(err.message || "Failed to promote user");
+    }
+  };
+
+  const blockUser = async (userId, value) => {
+    try {
+      setError("");
+      await adminApi.updateUser(userId, { action: "block", value });
+      setSuccess(value ? "User blocked" : "User unblocked");
+      await loadUsers();
+    } catch (err) {
+      setError(err.message || "Failed to update user");
+    }
+  };
+
+  const resetPassword = async (userId) => {
+    try {
+      setError("");
+      await adminApi.updateUser(userId, { action: "reset_password", newPassword: "password123" });
+      setSuccess("Password reset to password123");
+    } catch (err) {
+      setError(err.message || "Failed to reset password");
     }
   };
 
@@ -58,6 +96,8 @@ export default function AdminUsersPage() {
                 <TableCell>Name</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Role</TableCell>
+                <TableCell>Orders</TableCell>
+                <TableCell>Blocked</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -71,6 +111,8 @@ export default function AdminUsersPage() {
                     <TableCell>{user.name || "-"}</TableCell>
                     <TableCell>{user.email || "-"}</TableCell>
                     <TableCell>{role}</TableCell>
+                    <TableCell>{user.ordersCount || 0}</TableCell>
+                    <TableCell>{user.isBlocked ? "Yes" : "No"}</TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1}>
                         {!isAdmin ? (
@@ -80,6 +122,15 @@ export default function AdminUsersPage() {
                         ) : (
                           <Typography sx={{ opacity: 0.7 }}>Already admin</Typography>
                         )}
+                        <Button size="small" onClick={() => setSelectedUser(user)}>
+                          History
+                        </Button>
+                        <Button size="small" color={user.isBlocked ? "success" : "warning"} onClick={() => blockUser(id, !user.isBlocked)}>
+                          {user.isBlocked ? "Unblock" : "Block"}
+                        </Button>
+                        <Button size="small" onClick={() => resetPassword(id)}>
+                          Reset Password
+                        </Button>
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -88,6 +139,36 @@ export default function AdminUsersPage() {
             </TableBody>
           </Table>
         </Paper>
+
+        <Dialog open={Boolean(selectedUser)} onClose={() => setSelectedUser(null)} fullWidth maxWidth="md">
+          <DialogTitle>User Order History</DialogTitle>
+          <DialogContent>
+            <Typography sx={{ mb: 1.5 }}>
+              {selectedUser?.name || "-"} | {selectedUser?.email || "-"}
+            </Typography>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Order ID</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(selectedUser?.orders || []).map((order) => (
+                  <TableRow key={order.id || order._id}>
+                    <TableCell>{order.id || order._id}</TableCell>
+                    <TableCell>{order.status || order.orderStatus || "-"}</TableCell>
+                    <TableCell>{order.totalAmount || order.total || 0}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setSelectedUser(null)}>Close</Button>
+          </DialogActions>
+        </Dialog>
       </AdminShell>
     </AdminGuard>
   );
