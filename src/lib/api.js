@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { startGlobalLoading, stopGlobalLoading } from "@/lib/loadingBus";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "",
@@ -8,6 +9,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  startGlobalLoading();
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("auth_token");
     if (token) {
@@ -15,6 +17,17 @@ api.interceptors.request.use((config) => {
     }
   }
   return config;
+}, (error) => {
+  stopGlobalLoading();
+  return Promise.reject(error);
+});
+
+api.interceptors.response.use((response) => {
+  stopGlobalLoading();
+  return response;
+}, (error) => {
+  stopGlobalLoading();
+  return Promise.reject(error);
 });
 
 function throwApiError(error, fallbackMessage) {
@@ -164,8 +177,18 @@ export const ordersApi = {
     request("post", "/api/orders", payload, null, "Failed to create order"),
   myOrders: () =>
     request("get", "/api/orders/my-orders", null, null, "Failed to load orders"),
+  validateCoupon: (payload) =>
+    request(
+      "post",
+      "/api/orders/coupons/validate",
+      payload,
+      null,
+      "Failed to validate coupon"
+    ),
   getById: (id) =>
     request("get", `/api/orders/${id}`, null, null, "Failed to load order"),
+  trackById: (id) =>
+    request("get", `/api/orders/${id}/track`, null, null, "Failed to load tracking"),
   updateStatus: (id, payload) =>
     request(
       "put",
@@ -173,6 +196,25 @@ export const ordersApi = {
       payload,
       null,
       "Failed to update order status"
+    ),
+};
+
+export const checkoutApi = {
+  validate: (payload) =>
+    request(
+      "post",
+      "/api/checkout/validate",
+      payload,
+      null,
+      "Checkout validation failed"
+    ),
+  shippingOptions: (subtotal) =>
+    request(
+      "get",
+      "/api/checkout/shipping-options",
+      null,
+      { subtotal },
+      "Failed to load shipping options"
     ),
 };
 

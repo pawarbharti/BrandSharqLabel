@@ -79,7 +79,7 @@ export default function HomePage() {
           Luxury Menswear Redefined
         </Typography>
 
-        <Link href="/shop" style={{ textDecoration: "none" }}>
+        <Link href="/collection" style={{ textDecoration: "none" }}>
           <AppButton sx={{ px: 4, py: 1.5, fontWeight: 600, letterSpacing: 1 }}>
             Explore Collection
           </AppButton>

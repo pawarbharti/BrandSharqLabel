@@ -48,10 +48,29 @@ const TABS = [
 ];
 
 const getOrderId = (order) => order?.id || order?._id || `ORD-${Math.random().toString(36).slice(2, 8)}`;
+const getOrderRouteId = (order) => order?.id || order?._id || order?.orderId || "";
 const getOrderDate = (order) => order?.date || order?.createdAt || new Date().toISOString();
 const getOrderStatus = (order) => order?.status || "Processing";
 const getOrderTotal = (order) => Number(order?.total || order?.totalAmount || 0);
 const getOrderItems = (order) => (Array.isArray(order?.items) ? order.items : []);
+const formatOrderAddress = (value) => {
+  if (!value) return "Address not available";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.filter(Boolean).join(", ");
+  if (typeof value === "object") {
+    const parts = [
+      value?.name,
+      value?.line1,
+      value?.line2,
+      value?.city,
+      value?.state,
+      value?.pincode,
+      value?.landmark,
+    ].filter(Boolean);
+    return parts.length ? parts.join(", ") : "Address not available";
+  }
+  return "Address not available";
+};
 const getAddressId = (address) => address?.id || address?._id || address?.addressId;
 const currency = (value) => `Rs ${Math.round(Number(value || 0)).toLocaleString("en-IN")}`;
 
@@ -424,6 +443,7 @@ export default function AccountPage() {
               </Stack>
               {recentOrders.map((order) => {
                 const oid = getOrderId(order);
+                const routeOrderId = getOrderRouteId(order);
                 const isOpen = expandedOrder === oid;
                 return (
                   <Card key={oid} sx={{ ...panelCardSx }}>
@@ -441,7 +461,16 @@ export default function AccountPage() {
                           <AppButton variant="outlined" size="small" onClick={() => setExpandedOrder(isOpen ? "" : oid)}>
                             {isOpen ? "Hide Details" : "View Details"}
                           </AppButton>
-                          <AppButton size="small" onClick={() => toast.info("Tracking details will be shown soon.")}>
+                          <AppButton
+                            size="small"
+                            onClick={() => {
+                              if (!routeOrderId) {
+                                toast.info("Tracking is not available for this order.");
+                                return;
+                              }
+                              router.push(`/track-order/${routeOrderId}`);
+                            }}
+                          >
                             Track Order
                           </AppButton>
                         </Stack>
@@ -456,7 +485,7 @@ export default function AccountPage() {
                             </Typography>
                           ))}
                           <Typography sx={{ mt: 1.5, opacity: 0.8 }}>
-                            Delivery Address: {order?.address || order?.shippingAddress || "Address not available"}
+                            Delivery Address: {formatOrderAddress(order?.shippingAddress || order?.address)}
                           </Typography>
                           <Typography sx={{ opacity: 0.8 }}>
                             Payment Method: {order?.paymentMethod || "Online Payment"}

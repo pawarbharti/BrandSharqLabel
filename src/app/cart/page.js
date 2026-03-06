@@ -428,7 +428,7 @@ export default function CartPage() {
                   </Typography>
                 </Box>
 
-                <AppButton fullWidth sx={{ mb: 2 }}>
+                <AppButton fullWidth sx={{ mb: 2 }} component={Link} href="/checkout">
                   Proceed to Checkout
                 </AppButton>
 

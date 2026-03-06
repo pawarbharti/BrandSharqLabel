@@ -13,7 +13,7 @@ function FooterLink({ href, children }) {
         mt: 1,
         textDecoration: "none",
         color: "text.secondary",
-        fontSize: "14px",
+        fontSize: "16px",
         "&:hover": { color: "primary.main" },
       }}
     >
@@ -79,20 +79,20 @@ export default function Footer() {
 
         <Grid item xs={6} md={3}>
           <Typography sx={{ fontWeight: 600, mb: 1 }}>Contact Us</Typography>
-          <Typography sx={{ mt: 1, color: "text.secondary", fontSize: "14px" }}>
+          <Typography sx={{ mt: 1, color: "text.secondary", fontSize: "16px" }}>
             Pune, Maharashtra, India
           </Typography>
-          <Typography sx={{ mt: 1, color: "text.secondary", fontSize: "14px" }}>
+          <Typography sx={{ mt: 1, color: "text.secondary", fontSize: "16px" }}>
             +91 9876543210
           </Typography>
-          <Typography sx={{ mt: 1, color: "text.secondary", fontSize: "14px" }}>
+          <Typography sx={{ mt: 1, color: "text.secondary", fontSize: "16px" }}>
             support@sharqlabel.com
           </Typography>
         </Grid>
       </Grid>
 
       <Box sx={{ textAlign: "center", mt: 6 }}>
-        <Typography sx={{ color: "text.secondary", fontSize: "14px" }}>
+        <Typography sx={{ color: "text.secondary", fontSize: "16px" }}>
           (c) 2026 Sharq Label. All Rights Reserved.
         </Typography>
       </Box>

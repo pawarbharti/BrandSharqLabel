@@ -253,7 +253,7 @@ export default function CollectionPage() {
                 <Card sx={{ height: index === 0 ? 520 : 255 }}>
                   <CardActionArea
                     component={Link}
-                    href={`/shop?product=${encodeURIComponent(getProductId(product))}`}
+                    href={`/shop/${encodeURIComponent(getProductId(product))}`}
                     sx={{ height: "100%", position: "relative" }}
                   >
                     <CardMedia
@@ -371,7 +371,7 @@ export default function CollectionPage() {
         </Container>
       </Box>
 
-      <Container sx={{ py: { xs: 6, md: 9 } }}>
+      {/* <Container sx={{ py: { xs: 6, md: 9 } }}>
         <Typography variant="h4" sx={{ mb: 1 }}>
           Complete The Look
         </Typography>
@@ -414,7 +414,7 @@ export default function CollectionPage() {
             No products available for this collection right now.
           </Typography>
         )}
-      </Container>
+      </Container> */}
 
       <Box sx={{ bgcolor: (theme) => theme.palette.brand.borderSoft, py: { xs: 6, md: 8 } }}>
         <Container>
@@ -457,7 +457,7 @@ export default function CollectionPage() {
         </Container>
       </Box>
 
-      <Container sx={{ py: { xs: 7, md: 10 }, textAlign: "center" }}>
+      {/* <Container sx={{ py: { xs: 7, md: 10 }, textAlign: "center" }}>
         <Typography variant="h3" sx={{ mb: 1.5, letterSpacing: 1 }}>
           Discover Your Identity
         </Typography>
@@ -467,7 +467,7 @@ export default function CollectionPage() {
         <AppButton component={Link} href="/shop" sx={{ px: 4 }}>
           Explore Full Collection
         </AppButton>
-      </Container>
+      </Container> */}
     </Box>
   );
 }

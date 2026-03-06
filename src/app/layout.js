@@ -5,7 +5,7 @@ import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import WishlistProvider from "@/context/WishlistContext";
 import AuthProvider from "@/context/AuthContext";
-import { ToastProvider } from "@/components/common";
+import { PageLoaderProvider, ToastProvider } from "@/components/common";
 
 export default function RootLayout({ children }) {
   return (
@@ -13,15 +13,17 @@ export default function RootLayout({ children }) {
       <body>
         <ThemeContextProvider>
           <AuthProvider>
-            <ToastProvider>
-              <CartProvider>
-                <WishlistProvider>
-                  <Navbar />
-                  {children}
-                  <Footer />
-                </WishlistProvider>
-              </CartProvider>
-            </ToastProvider>
+            <PageLoaderProvider>
+              <ToastProvider>
+                <CartProvider>
+                  <WishlistProvider>
+                    <Navbar />
+                    {children}
+                    <Footer />
+                  </WishlistProvider>
+                </CartProvider>
+              </ToastProvider>
+            </PageLoaderProvider>
           </AuthProvider>
         </ThemeContextProvider>
       </body>
