@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Box, Button, Container, Typography } from "@mui/material";
+import { Box, Button, Container, Typography, Stack } from "@mui/material";
 
 const links = [
   { href: "/admin", label: "Dashboard" },
@@ -15,20 +15,42 @@ const links = [
 
 export default function AdminShell({ title, children }) {
   return (
-    <Container sx={{ py: 5 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
+    <Container maxWidth={false} sx={{ py: 4 }}>
+      {/* PAGE TITLE */}
+      <Typography
+        variant="h4"
+        sx={{
+          mb: 3,
+          fontWeight: 700,
+        }}
+      >
         {title}
       </Typography>
 
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 4 }}>
+      {/* NAVIGATION */}
+      <Stack
+        direction="row"
+        spacing={1.5}
+        sx={{
+          mb: 4,
+          flexWrap: "wrap",
+        }}
+      >
         {links.map((item) => (
-          <Button key={item.href} component={Link} href={item.href} variant="outlined">
+          <Button
+            key={item.href}
+            component={Link}
+            href={item.href}
+            variant="outlined"
+            size="small"
+          >
             {item.label}
           </Button>
         ))}
-      </Box>
+      </Stack>
 
-      {children}
+      {/* PAGE CONTENT */}
+      <Box sx={{ width: "100%" }}>{children}</Box>
     </Container>
   );
 }

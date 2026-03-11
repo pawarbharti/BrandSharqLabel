@@ -43,10 +43,44 @@ export function getSalesChartFromOrders(orders) {
   return [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, value]) => value);
 }
 
+function mergeMonthlySeries(baseSeries = [], orderSeries = []) {
+  const byMonth = new Map();
+
+  baseSeries.forEach((item) => {
+    const month = String(item?.month || "").trim();
+    if (!month) return;
+    byMonth.set(month, {
+      month,
+      sales: Number(item?.sales || 0),
+      visitors: Number(item?.visitors || 0),
+      orders: Number(item?.orders || 0),
+    });
+  });
+
+  orderSeries.forEach((item) => {
+    const month = String(item?.month || "").trim();
+    if (!month) return;
+    const current = byMonth.get(month) || {
+      month,
+      sales: 0,
+      visitors: 0,
+      orders: 0,
+    };
+    current.sales += Number(item?.sales || 0);
+    current.orders += Number(item?.orders || 0);
+    byMonth.set(month, current);
+  });
+
+  return [...byMonth.values()];
+}
+
 export function computeDashboardStats() {
   const store = getStore();
   const orders = getAllOrders();
   const products = store.products || [];
+  const baseVisitors = Array.isArray(store.visitorsByMonth) ? store.visitorsByMonth : [];
+  const orderSalesChart = getSalesChartFromOrders(orders);
+  const monthlySeries = mergeMonthlySeries(baseVisitors, orderSalesChart);
 
   return {
     totalRevenue: getRevenue(orders),
@@ -60,8 +94,15 @@ export function computeDashboardStats() {
     recentOrders: orders.slice(0, 8),
     trendingProducts: getTrendingProducts(products),
     lowStockProducts: getLowStockProducts(products, 10).slice(0, 8),
-    salesChart: getSalesChartFromOrders(orders),
-    visitors: store.visitorsByMonth || [],
+    salesChart: monthlySeries.map(({ month, sales, orders: monthlyOrders }) => ({
+      month,
+      sales,
+      orders: monthlyOrders,
+    })),
+    visitors: monthlySeries.map(({ month, visitors }) => ({
+      month,
+      visitors,
+    })),
     lastUpdatedAt: store.metrics?.lastUpdatedAt || new Date().toISOString(),
   };
 }

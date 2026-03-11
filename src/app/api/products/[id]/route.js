@@ -7,9 +7,18 @@ function normalizeVariant(variant, productId, index) {
     id: variant?.id || `${productId}_v${index + 1}`,
     size: String(variant?.size || "").toUpperCase() || "M",
     color: variant?.color || "Black",
+    colorHex: variant?.colorHex || "#111111",
     stock: Math.max(0, Number(variant?.stock || 0)),
     sku: variant?.sku || `${productId}-${index + 1}`,
   };
+}
+
+function toSlug(input) {
+  return String(input || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 function getProduct(store, id) {
@@ -47,25 +56,51 @@ export async function PUT(req, { params }) {
   const stock = variants.length
     ? variants.reduce((sum, variant) => sum + Number(variant.stock || 0), 0)
     : Math.max(0, Number(body.stock ?? product.stock ?? 0));
+  const images = Array.isArray(body.images) ? body.images.filter(Boolean) : product.images;
 
   Object.assign(product, {
     name: body.name ?? product.name,
     description: body.description ?? product.description,
     price: body.price !== undefined ? Math.max(0, Number(body.price || 0)) : product.price,
+    mrp: body.mrp !== undefined ? Math.max(0, Number(body.mrp || 0)) : product.mrp,
+    originalPrice: body.originalPrice !== undefined
+      ? Math.max(0, Number(body.originalPrice || 0))
+      : product.originalPrice,
     stock,
     category: body.category ?? product.category,
     categoryId: body.categoryId ?? product.categoryId,
     collection: body.collection ?? product.collection,
-    images: Array.isArray(body.images) ? body.images.filter(Boolean) : product.images,
-    image: Array.isArray(body.images) && body.images.length ? body.images[0] : (product.images?.[0] || product.image),
+    slug: body.slug ?? product.slug ?? toSlug(body.name ?? product.name),
+    images,
+    image: images?.[0] || product.image,
     isNew: body.isNew !== undefined ? Boolean(body.isNew) : product.isNew,
     isBestSeller: body.isBestSeller !== undefined ? Boolean(body.isBestSeller) : product.isBestSeller,
+    isLimited: body.isLimited !== undefined ? Boolean(body.isLimited) : product.isLimited,
     soldCount: body.soldCount !== undefined ? Number(body.soldCount || 0) : product.soldCount,
     viewCount: body.viewCount !== undefined ? Number(body.viewCount || 0) : product.viewCount,
     addedToCartCount: body.addedToCartCount !== undefined ? Number(body.addedToCartCount || 0) : product.addedToCartCount,
     rating: body.rating !== undefined ? Number(body.rating || 0) : product.rating,
     reviewCount: body.reviewCount !== undefined ? Number(body.reviewCount || 0) : product.reviewCount,
     isActive: body.isActive !== undefined ? Boolean(body.isActive) : product.isActive,
+    colors: Array.isArray(body.colors)
+      ? Array.from(new Set(body.colors.filter(Boolean)))
+      : product.colors,
+    productSpecifications: body.productSpecifications
+      ? {
+          ...product.productSpecifications,
+          ...body.productSpecifications,
+          careInstructions: Array.isArray(body?.productSpecifications?.careInstructions)
+            ? body.productSpecifications.careInstructions.filter(Boolean)
+            : product?.productSpecifications?.careInstructions || [],
+        }
+      : product.productSpecifications,
+    seo: body.seo
+      ? {
+          ...product.seo,
+          metaTitle: body?.seo?.metaTitle ?? product?.seo?.metaTitle ?? "",
+          metaDescription: body?.seo?.metaDescription ?? product?.seo?.metaDescription ?? "",
+        }
+      : product.seo,
     variants,
     updatedAt: new Date().toISOString(),
   });

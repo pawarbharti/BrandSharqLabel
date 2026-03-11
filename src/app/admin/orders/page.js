@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   MenuItem,
   Paper,
   Select,
@@ -19,160 +21,341 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
+
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import DoneAllIcon from "@mui/icons-material/DoneAll";
+import ReplayIcon from "@mui/icons-material/Replay";
+import CancelIcon from "@mui/icons-material/Cancel";
+
 import AdminGuard from "@/components/admin/AdminGuard";
 import AdminShell from "@/components/admin/AdminShell";
 import { adminApi } from "@/lib/api";
 
-function currency(value) {
-  return `Rs ${Number(value || 0).toLocaleString("en-IN")}`;
+function currency(v) {
+  return `Rs ${Number(v || 0).toLocaleString("en-IN")}`;
+}
+
+function StatusChip({ status }) {
+  const map = {
+    Pending: "default",
+    Confirmed: "info",
+    Processing: "warning",
+    Packed: "secondary",
+    Dispatched: "secondary",
+    Shipped: "info",
+    Delivered: "success",
+    Cancelled: "error",
+    Refunded: "secondary",
+  };
+
+  return <Chip label={status} size="small" color={map[status] || "default"} />;
 }
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [status, setStatus] = useState("Processing");
-  const [trackingId, setTrackingId] = useState("");
 
   const load = async () => {
-    const data = await adminApi.orders();
-    setOrders(data?.orders || data?.data || data || []);
+    try {
+      const data = await adminApi.orders();
+      const list = data?.orders || data?.data || data || [];
+      setOrders(list);
+      setFiltered(list);
+    } catch (err) {
+      setError(err.message || "Failed to load orders");
+    }
   };
 
   useEffect(() => {
-    let active = true;
-    async function run() {
-      try {
-        const data = await adminApi.orders();
-        if (active) setOrders(data?.orders || data?.data || data || []);
-      } catch (err) {
-        if (active) setError(err.message || "Failed to load admin orders");
-      }
-    }
-    run();
-    return () => {
-      active = false;
-    };
+    load();
   }, []);
 
-  const updateOrder = async (id, payload, label) => {
+  useEffect(() => {
+    let result = [...orders];
+
+    if (search) {
+      const s = search.toLowerCase();
+      result = result.filter(
+        (o) =>
+          String(o._id || o.id)
+            .toLowerCase()
+            .includes(s) ||
+          (o.userEmail || o.email || "").toLowerCase().includes(s),
+      );
+    }
+
+    if (statusFilter) {
+      result = result.filter(
+        (o) => (o.orderStatus || o.status) === statusFilter,
+      );
+    }
+
+    setFiltered(result);
+  }, [search, statusFilter, orders]);
+
+  const analytics = useMemo(() => {
+    return {
+      total: orders.length,
+      processing: orders.filter(
+        (o) => (o.orderStatus || o.status) === "Processing",
+      ).length,
+      shipped: orders.filter((o) => (o.orderStatus || o.status) === "Shipped")
+        .length,
+      delivered: orders.filter(
+        (o) => (o.orderStatus || o.status) === "Delivered",
+      ).length,
+    };
+  }, [orders]);
+
+  const updateOrder = async (id, status) => {
     try {
-      setError("");
-      await adminApi.updateOrder(id, payload);
-      setSuccess(label);
+      await adminApi.updateOrder(id, {
+        action: "update_status",
+        status,
+        orderStatus: status,
+      });
+
+      setSuccess(`Order marked as ${status}`);
       await load();
-      if (selectedOrder && String(selectedOrder.id || selectedOrder._id) === String(id)) {
-        const detail = await adminApi.orderById(id);
-        setSelectedOrder(detail?.order || detail?.data || detail);
-      }
     } catch (err) {
       setError(err.message || "Failed to update order");
     }
   };
 
   const openDetails = async (id) => {
-    try {
-      const data = await adminApi.orderById(id);
-      const order = data?.order || data?.data || data;
-      setSelectedOrder(order);
-      setStatus(order?.status || order?.orderStatus || "Processing");
-      setTrackingId(order?.trackingId || "");
-    } catch (err) {
-      setError(err.message || "Failed to load order details");
-    }
+    const data = await adminApi.orderById(id);
+    const order = data?.order || data?.data || data;
+    setSelectedOrder(order);
+  };
+
+  const exportOrders = () => {
+    const blob = new Blob([JSON.stringify(orders, null, 2)], {
+      type: "application/json",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "orders-export.json";
+    link.click();
+
+    URL.revokeObjectURL(url);
   };
 
   const printInvoice = (order) => {
-    const lines = [
-      "INVOICE",
-      `Order ID: ${order.id || order._id}`,
-      `Customer: ${order.userEmail || "-"}`,
-      `Status: ${order.status || order.orderStatus || "-"}`,
-      `Total: ${currency(order.totalAmount || order.total || 0)}`,
-      "",
-      "Items:",
-      ...(order.items || []).map(
-        (item) => `- ${item.name || item.productName || "Item"} x${item.quantity || item.qty || 1} @ ${currency(item.price || 0)}`
-      ),
-    ];
-
     const popup = window.open("", "_blank", "width=700,height=900");
     if (!popup) return;
-    popup.document.write(`<pre style="font-family:monospace;padding:24px;">${lines.join("\n")}</pre>`);
-    popup.document.close();
-    popup.focus();
-    popup.print();
-  };
 
-  const exportOrders = async () => {
-    try {
-      const data = await adminApi.exportOrders();
-      const payload = data?.orders || [];
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `orders-export-${new Date().toISOString().slice(0, 10)}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-      setSuccess("Orders exported");
-    } catch (err) {
-      setError(err.message || "Failed to export orders");
-    }
+    popup.document.write(`
+      <h2>Sharq Label</h2>
+      <hr/>
+      <p>Order ID: ${order._id}</p>
+      <p>Customer: ${order.userEmail || "-"}</p>
+      <p>Total: ${currency(order.totalAmount)}</p>
+
+      <h3>Items</h3>
+      <ul>
+        ${(order.items || [])
+          .map(
+            (i) =>
+              `<li>${i.name || i.productName} x ${
+                i.quantity || i.qty
+              } - ${currency(i.price)}</li>`,
+          )
+          .join("")}
+      </ul>
+    `);
+
+    popup.print();
   };
 
   return (
     <AdminGuard>
       <AdminShell title="Manage Orders">
-        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
-        {success ? <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert> : null}
+        {error && <Alert severity="error">{error}</Alert>}
+        {success && <Alert severity="success">{success}</Alert>}
 
-        <Paper sx={{ p: 2 }}>
-          <Stack direction="row" justifyContent="space-between" sx={{ mb: 2 }}>
-            <Typography variant="h6">Orders</Typography>
-            <Button variant="outlined" onClick={exportOrders}>
-              Export Orders
-            </Button>
-          </Stack>
-          <Table size="small">
+        {/* ANALYTICS */}
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          <Paper sx={{ p: 2 }}>
+            <Typography>Total Orders</Typography>
+            <Typography variant="h6">{analytics.total}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2 }}>
+            <Typography>Processing</Typography>
+            <Typography variant="h6">{analytics.processing}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2 }}>
+            <Typography>Shipped</Typography>
+            <Typography variant="h6">{analytics.shipped}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2 }}>
+            <Typography>Delivered</Typography>
+            <Typography variant="h6">{analytics.delivered}</Typography>
+          </Paper>
+        </Stack>
+
+        {/* SEARCH + FILTER */}
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          <TextField
+            size="small"
+            placeholder="Search orders..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <Select
+            size="small"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="Pending">Pending</MenuItem>
+            <MenuItem value="Confirmed">Confirmed</MenuItem>
+            <MenuItem value="Processing">Processing</MenuItem>
+            <MenuItem value="Packed">Packed</MenuItem>
+            <MenuItem value="Dispatched">Dispatched</MenuItem>
+            <MenuItem value="Shipped">Shipped</MenuItem>
+            <MenuItem value="Delivered">Delivered</MenuItem>
+            <MenuItem value="Cancelled">Cancelled</MenuItem>
+          </Select>
+
+          <Button variant="outlined" onClick={exportOrders}>
+            Export
+          </Button>
+        </Stack>
+
+        {/* TABLE */}
+        <Paper>
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Order ID</TableCell>
-                <TableCell>User</TableCell>
+                <TableCell>User Email</TableCell>
+                <TableCell>User Name</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Total</TableCell>
+                <TableCell>Date</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
+
             <TableBody>
-              {orders.map((order) => {
+              {filtered.map((order) => {
                 const id = order._id || order.id;
+                const status = order.orderStatus || order.status;
+
                 return (
                   <TableRow key={id}>
                     <TableCell>{id}</TableCell>
-                    <TableCell>{order.user?.email || order.userEmail || order.email || "-"}</TableCell>
-                    <TableCell>{order.orderStatus || order.status || "-"}</TableCell>
-                    <TableCell>{currency(order.totalAmount || order.total || 0)}</TableCell>
+
+                    <TableCell>{order.userId?.email || "-"}</TableCell>
+                    <TableCell>{order.userId?.name || "-"}</TableCell>
+
                     <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <Button size="small" onClick={() => openDetails(id)}>
-                          View
-                        </Button>
-                        <Button
-                          size="small"
-                          onClick={() => updateOrder(id, { action: "mark_shipped", trackingId: order.trackingId || "TRACK123" }, "Order marked as shipped")}
-                        >
-                          Mark Shipped
-                        </Button>
-                        <Button size="small" color="warning" onClick={() => updateOrder(id, { action: "refund" }, "Order refunded")}>
-                          Refund
-                        </Button>
-                        <Button size="small" color="error" onClick={() => updateOrder(id, { action: "cancel" }, "Order cancelled")}>
-                          Cancel
-                        </Button>
+                      <StatusChip status={status} />
+                    </TableCell>
+
+                    <TableCell>
+                      {currency(order.totalAmount || order.total)}
+                    </TableCell>
+
+                    <TableCell>
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleDateString()
+                        : "-"}
+                    </TableCell>
+
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5}>
+                        <Tooltip title="View">
+                          <IconButton onClick={() => openDetails(id)}>
+                            <VisibilityIcon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Confirm">
+                          <IconButton
+                            onClick={() => updateOrder(id, "Confirmed")}
+                          >
+                            <CheckCircleIcon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Processing">
+                          <IconButton
+                            onClick={() => updateOrder(id, "Processing")}
+                          >
+                            <Inventory2Icon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Packed">
+                          <IconButton onClick={() => updateOrder(id, "Packed")}>
+                            📦
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Dispatched">
+                          <IconButton
+                            onClick={() => updateOrder(id, "Dispatched")}
+                          >
+                            🚚
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Shipped">
+                          <IconButton
+                            onClick={() => updateOrder(id, "Shipped")}
+                          >
+                            <LocalShippingIcon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Delivered">
+                          <IconButton
+                            color="success"
+                            onClick={() => updateOrder(id, "Delivered")}
+                          >
+                            <DoneAllIcon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Refund">
+                          <IconButton
+                            color="warning"
+                            onClick={() => updateOrder(id, "Refunded")}
+                          >
+                            <ReplayIcon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Cancel">
+                          <IconButton
+                            color="error"
+                            onClick={() => updateOrder(id, "Cancelled")}
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        </Tooltip>
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -182,54 +365,100 @@ export default function AdminOrdersPage() {
           </Table>
         </Paper>
 
-        <Dialog open={Boolean(selectedOrder)} onClose={() => setSelectedOrder(null)} fullWidth maxWidth="md">
+        {/* ORDER DETAILS */}
+        <Dialog
+          open={Boolean(selectedOrder)}
+          onClose={() => setSelectedOrder(null)}
+          fullWidth
+          maxWidth="md"
+        >
           <DialogTitle>Order Details</DialogTitle>
+
           <DialogContent>
-            {selectedOrder ? (
-              <Stack spacing={2} sx={{ pt: 1 }}>
-                <Typography>Order ID: {selectedOrder.id || selectedOrder._id}</Typography>
-                <Typography>Customer: {selectedOrder.userEmail || "-"}</Typography>
-                <Typography>Total: {currency(selectedOrder.totalAmount || selectedOrder.total || 0)}</Typography>
-                <Typography>Shipping Address: {selectedOrder.shippingAddress || selectedOrder.address || "-"}</Typography>
+            {selectedOrder && (
+              <Stack spacing={2}>
+                <Typography>
+                  <b>Order ID:</b> {selectedOrder._id || selectedOrder.id}
+                </Typography>
 
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                  <Select value={status} onChange={(e) => setStatus(e.target.value)} sx={{ minWidth: 160 }}>
-                    {["Processing", "Confirmed", "Shipped", "Delivered", "Cancelled", "Refunded"].map((item) => (
-                      <MenuItem key={item} value={item}>
-                        {item}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  <TextField label="Tracking ID" value={trackingId} onChange={(e) => setTrackingId(e.target.value)} />
-                  <Button
-                    variant="contained"
-                    onClick={() =>
-                      updateOrder(
-                        selectedOrder.id || selectedOrder._id,
-                        { action: "update_status", status, orderStatus: status, trackingId },
-                        "Order status updated"
-                      )
-                    }
-                  >
-                    Update Status
-                  </Button>
-                </Stack>
+                <Typography>
+                  <b>Customer:</b>{" "}
+                  {selectedOrder.user?.email || selectedOrder.userEmail || "-"}
+                </Typography>
 
+                <Typography>
+                  <b>Total:</b> {currency(selectedOrder.totalAmount)}
+                </Typography>
+
+                {/* SHIPPING ADDRESS */}
                 <Box>
-                  <Typography sx={{ mb: 1, fontWeight: 600 }}>Items</Typography>
-                  <Stack spacing={0.8}>
-                    {(selectedOrder.items || []).map((item, index) => (
-                      <Typography key={`${item.productId || index}`} sx={{ opacity: 0.8 }}>
-                        {item.name || item.productName || "Item"} | Qty {item.quantity || item.qty || 1} | Size {item.size || "-"} | Color {item.color || "-"}
+                  <Typography fontWeight={600} sx={{ mb: 0.5 }}>
+                    Shipping Address
+                  </Typography>
+
+                  {selectedOrder.shippingAddress ? (
+                    <Stack spacing={0.5}>
+                      <Typography>
+                        {selectedOrder.shippingAddress.name} |{" "}
+                        {selectedOrder.shippingAddress.phone}
+                      </Typography>
+
+                      <Typography>
+                        {selectedOrder.shippingAddress.line1}
+                        {selectedOrder.shippingAddress.line2
+                          ? `, ${selectedOrder.shippingAddress.line2}`
+                          : ""}
+                      </Typography>
+
+                      <Typography>
+                        {selectedOrder.shippingAddress.city},{" "}
+                        {selectedOrder.shippingAddress.state} -{" "}
+                        {selectedOrder.shippingAddress.pincode}
+                      </Typography>
+
+                      {selectedOrder.shippingAddress.landmark && (
+                        <Typography>
+                          Landmark: {selectedOrder.shippingAddress.landmark}
+                        </Typography>
+                      )}
+
+                      {selectedOrder.shippingAddress.instructions && (
+                        <Typography>
+                          Instructions:{" "}
+                          {selectedOrder.shippingAddress.instructions}
+                        </Typography>
+                      )}
+                    </Stack>
+                  ) : (
+                    <Typography>-</Typography>
+                  )}
+                </Box>
+
+                {/* ORDER ITEMS */}
+                <Box>
+                  <Typography fontWeight={600} sx={{ mb: 0.5 }}>
+                    Items
+                  </Typography>
+
+                  <Stack spacing={0.5}>
+                    {(selectedOrder.items || []).map((item, i) => (
+                      <Typography key={i}>
+                        {item.name || item.productName} | Qty{" "}
+                        {item.quantity || item.qty || 1}
+                        {item.size && ` | Size ${item.size}`}
+                        {item.color && ` | Color ${item.color}`}
                       </Typography>
                     ))}
                   </Stack>
                 </Box>
               </Stack>
-            ) : null}
+            )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => selectedOrder && printInvoice(selectedOrder)}>Print Invoice</Button>
+            <Button onClick={() => printInvoice(selectedOrder)}>
+              Print Invoice
+            </Button>
+
             <Button onClick={() => setSelectedOrder(null)}>Close</Button>
           </DialogActions>
         </Dialog>

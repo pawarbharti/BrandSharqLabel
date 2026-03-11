@@ -11,9 +11,18 @@ function normalizeVariant(variant, productId, index) {
     id: variant?.id || `${productId}_v${index + 1}`,
     size: String(variant?.size || "").toUpperCase() || "M",
     color: variant?.color || "Black",
+    colorHex: variant?.colorHex || "#111111",
     stock: Math.max(0, Number(variant?.stock || 0)),
     sku: variant?.sku || `${productId}-${index + 1}`,
   };
+}
+
+function toSlug(input) {
+  return String(input || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 export async function GET(req) {
@@ -49,6 +58,7 @@ export async function POST(req) {
     : [{ id: `${id}_v1`, size: "M", color: "Black", stock: Math.max(0, Number(body.stock || 0)), sku: `${id}-1` }];
 
   const stock = variants.reduce((sum, variant) => sum + Number(variant.stock || 0), 0);
+  const images = Array.isArray(body.images) ? body.images.filter(Boolean) : [];
 
   const product = {
     id,
@@ -56,20 +66,41 @@ export async function POST(req) {
     name: body.name,
     description: body.description || "",
     price: Math.max(0, Number(body.price || 0)),
+    mrp: Math.max(0, Number(body.mrp || body.originalPrice || 0)),
+    originalPrice: Math.max(0, Number(body.originalPrice || body.mrp || 0)),
     stock,
     category: body.category || "general",
     categoryId: body.categoryId || "",
     collection: body.collection || "General",
-    images: Array.isArray(body.images) ? body.images.filter(Boolean) : [],
-    image: Array.isArray(body.images) && body.images.length ? body.images[0] : "/homepic.jpeg",
+    slug: body.slug || toSlug(body.name),
+    images,
+    image: images[0] || "/homepic.jpeg",
     isNew: Boolean(body.isNew),
     isBestSeller: Boolean(body.isBestSeller),
+    isLimited: Boolean(body.isLimited),
     soldCount: Number(body.soldCount || 0),
     viewCount: Number(body.viewCount || 0),
     addedToCartCount: Number(body.addedToCartCount || 0),
     rating: Number(body.rating || 0),
     reviewCount: Number(body.reviewCount || 0),
     isActive: body.isActive ?? true,
+    colors: Array.isArray(body.colors)
+      ? Array.from(new Set(body.colors.filter(Boolean)))
+      : Array.from(new Set(variants.map((variant) => variant.color).filter(Boolean))),
+    productSpecifications: {
+      material: body?.productSpecifications?.material || "",
+      fit: body?.productSpecifications?.fit || "",
+      pattern: body?.productSpecifications?.pattern || "",
+      neckline: body?.productSpecifications?.neckline || "",
+      sleeveType: body?.productSpecifications?.sleeveType || "",
+      careInstructions: Array.isArray(body?.productSpecifications?.careInstructions)
+        ? body.productSpecifications.careInstructions.filter(Boolean)
+        : [],
+    },
+    seo: {
+      metaTitle: body?.seo?.metaTitle || "",
+      metaDescription: body?.seo?.metaDescription || "",
+    },
     variants,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
