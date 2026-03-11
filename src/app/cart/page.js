@@ -143,7 +143,15 @@ export default function CartPage() {
   };
 
   const changeQuantity = async (item, delta) => {
-    const next = Math.max(1, Number(item.quantity || 1) + delta);
+    const current = Number(item.quantity || 1);
+    const next = current + delta;
+
+    // If quantity would go to 0 or below, remove the item instead.
+    if (next <= 0) {
+      await handleRemove(getProductId(item));
+      return;
+    }
+
     try {
       await updateCartQuantity(getProductId(item), next);
     } catch (err) {

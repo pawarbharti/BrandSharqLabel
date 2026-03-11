@@ -30,6 +30,8 @@ import AutorenewOutlinedIcon from "@mui/icons-material/AutorenewOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+import CardGiftcardOutlinedIcon from "@mui/icons-material/CardGiftcardOutlined";
 import { useRouter } from "next/navigation";
 import { AppButton, AppInput, useToast } from "@/components/common";
 import { useAuth } from "@/context/AuthContext";
@@ -233,6 +235,23 @@ export default function AccountPage() {
     border: (theme) => `1px solid ${theme.palette.brand.borderSoft}`,
     borderRadius: 2.5,
     backgroundColor: "background.paper",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+    },
+  };
+
+  const statCardSx = {
+    border: "none",
+    borderRadius: 2.5,
+    backgroundColor: "background.paper",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
+    },
   };
 
   const handleLogoutTab = async () => {
@@ -368,21 +387,30 @@ export default function AccountPage() {
   }
 
   return (
-    <Container maxWidth={false} sx={{ py: 2, px: { xs: 1.5, md: 3 } }}>
+    <Container maxWidth={false} sx={{ py: 4, px: { xs: 1.5, md: 3 }, bgcolor: "background.default", minHeight: "100vh" }}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={3}>
-          <Card sx={{ ...panelCardSx }}>
-            <CardContent sx={{ p: 1 }}>
-              <List>
+          <Card sx={{ ...panelCardSx, position: "sticky", top: 20 }}>
+            <CardContent sx={{ p: 0 }}>
+              <List sx={{ py: 1 }}>
                 {TABS.map((tab) => (
                   <ListItemButton
                     key={tab.key}
                     selected={activeTab === tab.key}
                     onClick={() => onTabClick(tab.key)}
-                    sx={{ borderRadius: 1.5, mb: 0.5, py: 0.7 }}
+                    sx={{
+                      borderRadius: 1.5,
+                      mx: 1,
+                      mb: 0.5,
+                      py: 1,
+                      backgroundColor: activeTab === tab.key ? "rgba(0,0,0,0.04)" : "transparent",
+                      borderLeft: activeTab === tab.key ? (theme) => `3px solid ${theme.palette.primary.main}` : "none",
+                      transition: "all 0.2s ease",
+                      ">svg": { mr: 1.5 },
+                    }}
                   >
-                    <ListItemIcon sx={{ minWidth: 34 }}>{tab.icon}</ListItemIcon>
-                    <ListItemText primary={tab.label} />
+                    <ListItemIcon sx={{ minWidth: 32 }}>{tab.icon}</ListItemIcon>
+                    <ListItemText primary={tab.label} sx={{ "& .MuiTypography-root": { fontSize: 14 } }} />
                   </ListItemButton>
                 ))}
               </List>
@@ -392,55 +420,94 @@ export default function AccountPage() {
 
         <Grid item xs={12} md={9}>
           {activeTab === "dashboard" ? (
-            <Stack spacing={1.5}>
-              <Card sx={{ ...panelCardSx }}>
-                <CardContent>
-                  <Typography variant="h5" sx={{ mb: 0.5 }}>
-                    Welcome back, {user?.name || "Member"}
-                  </Typography>
-                  <Typography sx={{ opacity: 0.75 }}>
-                    Last order:{" "}
-                    {lastOrder ? new Date(getOrderDate(lastOrder)).toLocaleDateString("en-IN") : "No orders yet"}
-                  </Typography>
-                </CardContent>
-              </Card>
+            <Stack spacing={2.5}>
+              <Box>
+                <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 700 }}>Welcome back, {user?.name || "Member"}!</Typography>
+                <Typography sx={{ opacity: 0.65, fontSize: 15 }}>
+                  Last order: {lastOrder ? new Date(getOrderDate(lastOrder)).toLocaleDateString("en-IN") : "No orders yet"}
+                </Typography>
+              </Box>
 
-              <Grid container spacing={1.5}>
+              <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ ...panelCardSx }}><CardContent sx={{ py: 2 }}><Typography sx={{ opacity: 0.75 }}>Orders Placed</Typography><Typography variant="h4">{ordersPlaced}</Typography></CardContent></Card>
+                  <Card sx={{ ...statCardSx }}>
+                    <CardContent sx={{ py: 2.5 }}>
+                      <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+                        <Box>
+                          <Typography sx={{ opacity: 0.65, fontSize: 13, mb: 1 }}>Orders Placed</Typography>
+                          <Typography variant="h4" sx={{ fontWeight: 700 }}>{ordersPlaced}</Typography>
+                        </Box>
+                        <ShoppingBagOutlinedIcon sx={{ opacity: 0.3, fontSize: 32 }} />
+                      </Stack>
+                    </CardContent>
+                  </Card>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ ...panelCardSx }}><CardContent sx={{ py: 2 }}><Typography sx={{ opacity: 0.75 }}>Wishlist Items</Typography><Typography variant="h4">{wishlistItems}</Typography></CardContent></Card>
+                  <Card sx={{ ...statCardSx }}>
+                    <CardContent sx={{ py: 2.5 }}>
+                      <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+                        <Box>
+                          <Typography sx={{ opacity: 0.65, fontSize: 13, mb: 1 }}>Wishlist Items</Typography>
+                          <Typography variant="h4" sx={{ fontWeight: 700 }}>{wishlistItems}</Typography>
+                        </Box>
+                        <FavoriteBorderOutlinedIcon sx={{ opacity: 0.3, fontSize: 32 }} />
+                      </Stack>
+                    </CardContent>
+                  </Card>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ ...panelCardSx }}><CardContent sx={{ py: 2 }}><Typography sx={{ opacity: 0.75 }}>Saved Addresses</Typography><Typography variant="h4">{savedAddresses}</Typography></CardContent></Card>
+                  <Card sx={{ ...statCardSx }}>
+                    <CardContent sx={{ py: 2.5 }}>
+                      <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+                        <Box>
+                          <Typography sx={{ opacity: 0.65, fontSize: 13, mb: 1 }}>Saved Addresses</Typography>
+                          <Typography variant="h4" sx={{ fontWeight: 700 }}>{savedAddresses}</Typography>
+                        </Box>
+                        <PlaceOutlinedIcon sx={{ opacity: 0.3, fontSize: 32 }} />
+                      </Stack>
+                    </CardContent>
+                  </Card>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ ...panelCardSx }}><CardContent sx={{ py: 2 }}><Typography sx={{ opacity: 0.75 }}>Reward Points</Typography><Typography variant="h4">{couponData.points}</Typography></CardContent></Card>
+                  <Card sx={{ ...statCardSx }}>
+                    <CardContent sx={{ py: 2.5 }}>
+                      <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+                        <Box>
+                          <Typography sx={{ opacity: 0.65, fontSize: 13, mb: 1 }}>Reward Points</Typography>
+                          <Typography variant="h4" sx={{ fontWeight: 700 }}>{couponData.points}</Typography>
+                        </Box>
+                        <CardGiftcardOutlinedIcon sx={{ opacity: 0.3, fontSize: 32 }} />
+                      </Stack>
+                    </CardContent>
+                  </Card>
                 </Grid>
               </Grid>
 
-              <Card sx={{ ...panelCardSx }}>
-                <CardContent sx={{ py: 2 }}>
-                  <Typography variant="h6" sx={{ mb: 0.6 }}>Loyalty & Rewards</Typography>
-                  <Typography sx={{ opacity: 0.78, mb: 0.3 }}>
-                    Tier Status: {couponData.tier}
-                  </Typography>
-                  <Typography sx={{ opacity: 0.78, mb: 1.2 }}>
-                    Points Earned: {couponData.points}
-                  </Typography>
-                  <Chip size="small" color="secondary" label="Gold Access: Priority Drop Window + Exclusive Offers" />
+              <Card sx={{ ...panelCardSx, background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}08 100%)` }}>
+                <CardContent sx={{ py: 2.5 }}>
+                  <Typography variant="h6" sx={{ mb: 1.2, fontWeight: 600 }}>⭐ Loyalty & Rewards</Typography>
+                  <Stack spacing={1}>
+                    <Box>
+                      <Typography sx={{ opacity: 0.7, fontSize: 13 }}>Tier Status</Typography>
+                      <Typography sx={{ fontWeight: 600 }}>{couponData.tier}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography sx={{ opacity: 0.7, fontSize: 13 }}>Points Earned</Typography>
+                      <Typography sx={{ fontWeight: 600 }}>{couponData.points}</Typography>
+                    </Box>
+                    <Chip size="small" color="primary" label="Priority Access + Exclusive Offers" sx={{ alignSelf: "flex-start", mt: 0.5 }} />
+                  </Stack>
                 </CardContent>
               </Card>
             </Stack>
           ) : null}
 
           {activeTab === "orders" ? (
-            <Stack spacing={1.5}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="h5">Orders</Typography>
-                <Typography sx={{ opacity: 0.72, fontSize: 14 }}>Showing latest {recentOrders.length}</Typography>
-              </Stack>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Your Orders</Typography>
+                <Typography sx={{ opacity: 0.65, fontSize: 14 }}>Showing latest {recentOrders.length} order(s)</Typography>
+              </Box>
               {recentOrders.map((order) => {
                 const oid = getOrderId(order);
                 const routeOrderId = getOrderRouteId(order);
@@ -510,23 +577,28 @@ export default function AccountPage() {
           {activeTab === "wishlist" ? (
             <Card sx={{ ...panelCardSx }}>
               <CardContent>
-                <Typography variant="h5" sx={{ mb: 1 }}>Wishlist Shortcut</Typography>
-                <Typography sx={{ opacity: 0.78, mb: 2 }}>
-                  You have {wishlistItems} saved item(s). Continue where you left off.
+                <Typography variant="h5" sx={{ mb: 1, fontWeight: 700 }}>❤️ Your Wishlist</Typography>
+                <Typography sx={{ opacity: 0.65, mb: 2, fontSize: 15 }}>
+                  You have <strong>{wishlistItems}</strong> saved item(s). Continue where you left off.
                 </Typography>
-                <AppButton component={Link} href="/wishlist">Go to Wishlist</AppButton>
+                <AppButton component={Link} href="/wishlist" size="large">
+                  View Wishlist
+                </AppButton>
               </CardContent>
             </Card>
           ) : null}
 
           {activeTab === "addresses" ? (
-            <Stack spacing={1.5}>
-              <Typography variant="h5">Address Management</Typography>
-              <Grid container spacing={1.5}>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Address Management</Typography>
+                <Typography sx={{ opacity: 0.65, fontSize: 14 }}>Manage your shipping and delivery addresses</Typography>
+              </Box>
+              <Grid container spacing={2}>
                 <Grid item xs={12} lg={7}>
                   <Card sx={{ ...panelCardSx }}>
                     <CardContent>
-                  <Grid container spacing={1.5}>
+                  <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <AppInput label="Name" value={addressForm.name} onChange={(e) => setAddressForm((p) => ({ ...p, name: e.target.value }))} />
                     </Grid>
@@ -624,8 +696,11 @@ export default function AccountPage() {
           ) : null}
 
           {activeTab === "payments" ? (
-            <Stack spacing={1.5}>
-              <Typography variant="h5">Payment Methods</Typography>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Payment Methods</Typography>
+                <Typography sx={{ opacity: 0.65, fontSize: 14 }}>Manage your saved payment options</Typography>
+              </Box>
               {paymentMethods.length ? (
                 <Grid container spacing={1.5}>
                   {paymentMethods.map((method) => (
@@ -650,7 +725,7 @@ export default function AccountPage() {
           {activeTab === "profile" ? (
             <Card sx={{ ...panelCardSx }}>
               <CardContent>
-                <Typography variant="h5" sx={{ mb: 2 }}>Profile Details</Typography>
+                <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Profile Details</Typography>
                 <Grid container spacing={1.5}>
                   <Grid item xs={12} sm={6}>
                     <Typography sx={{ opacity: 0.7, fontSize: 13 }}>Name</Typography>
@@ -678,11 +753,11 @@ export default function AccountPage() {
           ) : null}
 
           {activeTab === "returns" ? (
-            <Stack spacing={1.5}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="h5">Returns & Exchanges</Typography>
-                <Typography sx={{ opacity: 0.72, fontSize: 14 }}>Showing latest {recentReturns.length}</Typography>
-              </Stack>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Returns & Exchanges</Typography>
+                <Typography sx={{ opacity: 0.65, fontSize: 14 }}>Showing latest {recentReturns.length} item(s)</Typography>
+              </Box>
               {recentReturns.map((entry) => (
                 <Card key={entry.id} sx={{ ...panelCardSx }}>
                   <CardContent>

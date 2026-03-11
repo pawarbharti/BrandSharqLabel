@@ -70,8 +70,8 @@ const discountPercent = (price, originalPrice) => {
   return Math.round(((originalPrice - price) / originalPrice) * 100);
 };
 
-const stockLabel = (stock) => {
-  if (stock <= 0) return { label: "Sold Out", color: "default" };
+const stockLabel = (stock, soldOutLabel = "Sold Out") => {
+  if (stock <= 0) return { label: soldOutLabel, color: "default" };
   if (stock <= 3) return { label: `Only ${stock} left`, color: "error" };
   if (stock < 10) return { label: "Low stock", color: "warning" };
   return { label: "In stock", color: "success" };
@@ -79,7 +79,13 @@ const stockLabel = (stock) => {
 
 const currency = (value) => `Rs ${Math.round(value).toLocaleString("en-IN")}`;
 
-export default function ProductCard({ product }) {
+export default function ProductCard({
+  product,
+  hideWishlistWhenOutOfStock = false,
+  soldOutLabel = "Sold Out",
+  hideWishlist = false,
+  hideQuickAdd = false,
+}) {
   const router = useRouter();
   const toast = useToast();
   const { wishlist, addToWishlist, removeFromWishlist } = useContext(WishlistContext);
@@ -96,7 +102,9 @@ export default function ProductCard({ product }) {
   const originalPrice = getOriginalPrice(product);
   const discount = discountPercent(price, originalPrice);
   const stock = getStock(product);
-  const stockChip = stockLabel(stock);
+  const stockChip = stockLabel(stock, soldOutLabel);
+  const shouldShowWishlist =
+    !hideWishlist && !(hideWishlistWhenOutOfStock && stock <= 0);
   const sizes = getSizes(product);
   const specs = getSpecs(product);
   const specPreview = [specs?.fit, specs?.material].filter(Boolean).join(" | ");
@@ -223,56 +231,60 @@ export default function ProductCard({ product }) {
             </Stack>
           ) : null}
 
-          <AppTooltip title={isWishlisted ? "Remove from wishlist" : "Save to wishlist"}>
-            <IconButton
-              onClick={handleWishlistToggle}
-              sx={(theme) => ({
-                position: "absolute",
-                top: 10,
-                right: 10,
-                bgcolor: theme.palette.brand.navGlass,
-                zIndex: 3,
-                transition: "all 0.2s ease",
-                transform: isWishlisted ? "scale(1.08)" : "scale(1)",
-                "&:hover": { bgcolor: theme.palette.background.paper },
-              })}
-            >
-              {isWishlisted ? (
-                <FavoriteIcon sx={{ color: "primary.main", fontSize: 20 }} />
-              ) : (
-                <FavoriteBorderIcon sx={{ fontSize: 20 }} />
-              )}
-            </IconButton>
-          </AppTooltip>
+          {shouldShowWishlist ? (
+            <AppTooltip title={isWishlisted ? "Remove from wishlist" : "Save to wishlist"}>
+              <IconButton
+                onClick={handleWishlistToggle}
+                sx={(theme) => ({
+                  position: "absolute",
+                  top: 10,
+                  right: 10,
+                  bgcolor: theme.palette.brand.navGlass,
+                  zIndex: 3,
+                  transition: "all 0.2s ease",
+                  transform: isWishlisted ? "scale(1.08)" : "scale(1)",
+                  "&:hover": { bgcolor: theme.palette.background.paper },
+                })}
+              >
+                {isWishlisted ? (
+                  <FavoriteIcon sx={{ color: "primary.main", fontSize: 20 }} />
+                ) : (
+                  <FavoriteBorderIcon sx={{ fontSize: 20 }} />
+                )}
+              </IconButton>
+            </AppTooltip>
+          ) : null}
 
-          <Box
-            sx={{
-              position: "absolute",
-              left: 12,
-              right: 12,
-              bottom: 12,
-              opacity: hovered ? 1 : 0,
-              transform: hovered ? "translateY(0)" : "translateY(8px)",
-              transition: "all 0.23s ease",
-              pointerEvents: hovered ? "auto" : "none",
-            }}
-          >
-            <AppButton
-              fullWidth
-              startIcon={<ShoppingBagOutlinedIcon />}
-              size="small"
-              onClick={onQuickAdd}
-              disabled={stock <= 0}
+          {!hideQuickAdd ? (
+            <Box
               sx={{
-                borderRadius: 20,
-                background: "primary.main",
-                color: "primary.contrastText",
-                "&:hover": { background: "primary.dark" },
+                position: "absolute",
+                left: 12,
+                right: 12,
+                bottom: 12,
+                opacity: hovered ? 1 : 0,
+                transform: hovered ? "translateY(0)" : "translateY(8px)",
+                transition: "all 0.23s ease",
+                pointerEvents: hovered ? "auto" : "none",
               }}
             >
-              {sizes.length > 0 && !selectedSize ? "Select Size" : "Quick Add"}
-            </AppButton>
-          </Box>
+              <AppButton
+                fullWidth
+                startIcon={<ShoppingBagOutlinedIcon />}
+                size="small"
+                onClick={onQuickAdd}
+                disabled={stock <= 0}
+                sx={{
+                  borderRadius: 20,
+                  background: "primary.main",
+                  color: "primary.contrastText",
+                  "&:hover": { background: "primary.dark" },
+                }}
+              >
+                {sizes.length > 0 && !selectedSize ? "Select Size" : "Quick Add"}
+              </AppButton>
+            </Box>
+          ) : null}
         </Box>
 
         <CardContent sx={{ p: 1.25 }}>

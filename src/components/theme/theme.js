@@ -23,7 +23,7 @@ const lightBrand = {
 
 const darkBrand = {
   bg: "#0B1220",               // deeper navy for better contrast
-  surface: "#1E293B",          // lighter than bg for separation
+  surface: "#344462",          // lighter than bg for separation
   primary: "#CFA292",          // brand peach accent
   hover: "#E8C1B2",            // slightly brighter hover
   text: "#F8FAFC",             // brighter white for headings

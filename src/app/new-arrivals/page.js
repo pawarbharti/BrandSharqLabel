@@ -157,7 +157,7 @@ export default function NewArrivalsPage() {
         sx={{
           minHeight: { xs: "60vh", md: "70vh" },
           backgroundImage: (theme) =>
-            `linear-gradient(${theme.palette.brand.overlaySoft}, ${theme.palette.brand.overlayStrong}), url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d')`,
+            `linear-gradient(${theme.palette.brand.overlaySoft}, ${theme.palette.brand.overlayStrong}), url('/NewArrivals.jpeg')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           display: "flex",
@@ -275,23 +275,6 @@ export default function NewArrivalsPage() {
                 {primaryGrid.map((product) => (
                   <Grid item xs={12} sm={6} md={3} key={getProductId(product)}>
                     <Box sx={{ position: "relative" }}>
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: 10,
-                          left: 10,
-                          zIndex: 3,
-                          display: "flex",
-                          gap: 0.5,
-                          flexWrap: "wrap",
-                          pointerEvents: "none",
-                        }}
-                      >
-                        <Chip size="small" label="NEW" color="secondary" />
-                        {isLimited(product) ? (
-                          <Chip size="small" label="Limited" color="error" />
-                        ) : null}
-                      </Box>
                       <ProductCard product={product} />
                     </Box>
                     <Typography sx={{ mt: 1, opacity: 0.75, fontSize: 13 }}>
@@ -300,76 +283,6 @@ export default function NewArrivalsPage() {
                   </Grid>
                 ))}
               </Grid>
-
-              <Container sx={{ py: { xs: 6, md: 8 } }}>
-                <Typography variant="h4" sx={{ mb: 1 }}>
-                  Styled This Way
-                </Typography>
-                <Typography sx={{ opacity: 0.78, mb: 3 }}>
-                  Editorial inspiration from this drop.
-                </Typography>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={8}>
-                    <Card sx={{ position: "relative", overflow: "hidden" }}>
-                      <CardMedia
-                        component="img"
-                        image={
-                          styleAnchor?.images?.[1] ||
-                          styleAnchor?.images?.[0] ||
-                          "https://images.unsplash.com/photo-1516257984-b1b4d707412e"
-                        }
-                        alt="Styled editorial look"
-                        sx={{ height: { xs: 320, md: 520 }, objectFit: "cover" }}
-                      />
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          inset: 0,
-                          background: (theme) =>
-                            `linear-gradient(to top, ${theme.palette.brand.overlayStrong}, ${theme.palette.brand.overlaySoft})`,
-                          display: "flex",
-                          alignItems: "end",
-                          p: 3,
-                        }}
-                      >
-                        <Box>
-                          <Typography sx={{ color: "background.paper", fontWeight: 600, mb: 1 }}>
-                            Editorial Look Tag
-                          </Typography>
-                          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                            {primaryGrid.slice(0, 3).map((product) => (
-                              <Chip
-                                key={getProductId(product)}
-                                component={Link}
-                                clickable
-                                href="/shop"
-                                label={getName(product)}
-                                sx={(theme) => ({ bgcolor: theme.palette.brand.navGlass, color: "background.paper" })}
-                              />
-                            ))}
-                          </Stack>
-                        </Box>
-                      </Box>
-                    </Card>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Card sx={{ height: "100%" }}>
-                      <CardContent>
-                        <Typography variant="h6" sx={{ mb: 1 }}>
-                          Look Direction
-                        </Typography>
-                        <Typography sx={{ opacity: 0.8, mb: 2 }}>
-                          Pair sharp outer layers with grounded neutrals and elevated
-                          accessories for a complete arrival-day silhouette.
-                        </Typography>
-                        <AppButton component={Link} href="/shop" fullWidth>
-                          Shop the Look
-                        </AppButton>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                </Grid>
-              </Container>
 
               {secondaryGrid.length > 0 ? (
                 <Grid container spacing={3}>

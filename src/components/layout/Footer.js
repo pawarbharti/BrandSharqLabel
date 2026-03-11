@@ -80,13 +80,13 @@ export default function Footer() {
         <Grid item xs={6} md={3}>
           <Typography sx={{ fontWeight: 600, mb: 1 }}>Contact Us</Typography>
           <Typography sx={{ mt: 1, color: "text.secondary", fontSize: "16px" }}>
-            Pune, Maharashtra, India
+            D-102, Ace Platinum, ZETA-1, Greater Noida
           </Typography>
           <Typography sx={{ mt: 1, color: "text.secondary", fontSize: "16px" }}>
-            +91 9876543210
+            7678294158
           </Typography>
           <Typography sx={{ mt: 1, color: "text.secondary", fontSize: "16px" }}>
-            support@sharqlabel.com
+            info@sharqlabel.com
           </Typography>
         </Grid>
       </Grid>

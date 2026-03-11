@@ -81,7 +81,12 @@ export default function Navbar() {
               alt="Sharq Label"
               width={110}
               height={50}
-              style={{ cursor: "pointer" }}
+              style={{
+                cursor: "pointer",
+                height: 48,
+                width: "auto",
+                objectFit: "contain",
+              }}
             />
           </Link>
 
