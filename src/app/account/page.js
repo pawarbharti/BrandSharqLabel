@@ -19,6 +19,13 @@ import {
   MenuItem,
   Stack,
   Typography,
+  useTheme,
+  useMediaQuery,
+  Drawer,
+  Fade,
+  Grow,
+  Paper,
+  Avatar,
 } from "@mui/material";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
@@ -32,6 +39,9 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import CardGiftcardOutlinedIcon from "@mui/icons-material/CardGiftcardOutlined";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import { useRouter } from "next/navigation";
 import { AppButton, AppInput, useToast } from "@/components/common";
 import { useAuth } from "@/context/AuthContext";
@@ -74,7 +84,7 @@ const formatOrderAddress = (value) => {
   return "Address not available";
 };
 const getAddressId = (address) => address?.id || address?._id || address?.addressId;
-const currency = (value) => `Rs ${Math.round(Number(value || 0)).toLocaleString("en-IN")}`;
+const currency = (value) => `₹${Math.round(Number(value || 0)).toLocaleString("en-IN")}`;
 
 const normalizeAddresses = (data) => {
   const root = data?.addresses || data?.data || data;
@@ -130,30 +140,39 @@ const normalizeReturns = (data) => {
   }));
 };
 
+const createEmptyAddressForm = () => ({
+  id: "",
+  name: "",
+  line1: "",
+  line2: "",
+  city: "",
+  state: "",
+  pincode: "",
+  phone: "",
+  landmark: "",
+  instructions: "",
+});
+
 export default function AccountPage() {
   const router = useRouter();
   const toast = useToast();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  
   const { isAuthenticated, isLoading, logout } = useAuth();
   const { wishlist } = useContext(WishlistContext);
+  
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState("");
 
-  const [addressForm, setAddressForm] = useState({
-    id: "",
-    name: "",
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
-    pincode: "",
-    phone: "",
-    landmark: "",
-    instructions: "",
-  });
+  const [addressForm, setAddressForm] = useState(createEmptyAddressForm);
+  const [showAddressForm, setShowAddressForm] = useState(false);
 
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [couponData, setCouponData] = useState({ points: 0, tier: "Member" });
@@ -232,25 +251,38 @@ export default function AccountPage() {
   const recentReturns = returns.slice(0, 3);
 
   const panelCardSx = {
-    border: (theme) => `1px solid ${theme.palette.brand.borderSoft}`,
-    borderRadius: 2.5,
-    backgroundColor: "background.paper",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: { xs: 2, sm: 2.5 },
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.palette.brand?.shadowCard || "0 2px 8px rgba(0,0,0,0.05)",
     transition: "all 0.3s ease",
     "&:hover": {
-      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+      boxShadow: theme.palette.brand?.shadowCardStrong || "0 4px 16px rgba(0,0,0,0.1)",
+      borderColor: theme.palette.primary.light + "40",
     },
   };
 
   const statCardSx = {
     border: "none",
-    borderRadius: 2.5,
-    backgroundColor: "background.paper",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-    transition: "all 0.3s ease",
+    borderRadius: { xs: 2, sm: 2.5 },
+    background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
+    boxShadow: theme.palette.brand?.shadowCard || "0 2px 8px rgba(0,0,0,0.05)",
+    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+    position: "relative",
+    overflow: "hidden",
     "&:hover": {
-      transform: "translateY(-2px)",
-      boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
+      transform: "translateY(-6px)",
+      boxShadow: theme.palette.brand?.shadowCardStrong || "0 6px 20px rgba(0,0,0,0.12)",
+    },
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      top: -30,
+      right: -30,
+      width: "120px",
+      height: "120px",
+      background: `radial-gradient(circle, ${theme.palette.primary.light}15, transparent)`,
+      borderRadius: "50%",
     },
   };
 
@@ -265,6 +297,7 @@ export default function AccountPage() {
       return;
     }
     setActiveTab(tab);
+    if (isMobile) setMobileDrawerOpen(false);
   };
 
   const saveAddress = async () => {
@@ -297,18 +330,8 @@ export default function AccountPage() {
       }
       toast.info("Saved locally. Address API not available.");
     } finally {
-      setAddressForm({
-        id: "",
-        name: "",
-        line1: "",
-        line2: "",
-        city: "",
-        state: "",
-        pincode: "",
-        phone: "",
-        landmark: "",
-        instructions: "",
-      });
+      setAddressForm(createEmptyAddressForm());
+      setShowAddressForm(false);
     }
   };
 
@@ -327,6 +350,21 @@ export default function AccountPage() {
       prev.map((address) => ({ ...address, isDefault: address.id === id }))
     );
     toast.success("Default address set.");
+  };
+
+  const startAddAddress = () => {
+    setAddressForm(createEmptyAddressForm());
+    setShowAddressForm(true);
+  };
+
+  const startEditAddress = (address) => {
+    setAddressForm(address);
+    setShowAddressForm(true);
+  };
+
+  const cancelAddressForm = () => {
+    setAddressForm(createEmptyAddressForm());
+    setShowAddressForm(false);
   };
 
   const requestReturn = (returnId, reason) => {
@@ -364,455 +402,871 @@ export default function AccountPage() {
     );
   };
 
+  // Sidebar Content Component
+  const SidebarContent = () => (
+    <Box sx={{ height: "100%" }}>
+      {/* User Profile Section */}
+      <Box sx={{ 
+        p: { xs: 2, sm: 2.5 },
+        background: `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.primary.main}08)`,
+        borderBottom: `1px solid ${theme.palette.divider}`,
+      }}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Avatar
+            sx={{
+              width: { xs: 48, sm: 56 },
+              height: { xs: 48, sm: 56 },
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+              fontWeight: 700,
+              fontSize: { xs: "1.25rem", sm: "1.5rem" },
+            }}
+          >
+            {user?.name?.charAt(0)?.toUpperCase() || "U"}
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography 
+              sx={{ 
+                fontWeight: 700,
+                fontSize: { xs: "0.938rem", sm: "1rem" },
+                mb: 0.25,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {user?.name || "User"}
+            </Typography>
+            <Typography 
+              sx={{ 
+                opacity: 0.7,
+                fontSize: { xs: "0.75rem", sm: "0.813rem" },
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {user?.email || ""}
+            </Typography>
+          </Box>
+        </Stack>
+      </Box>
+
+      {/* Navigation Tabs */}
+      <List sx={{ py: { xs: 1, sm: 1.5 }, px: 1 }}>
+        {TABS.map((tab) => (
+          <ListItemButton
+            key={tab.key}
+            selected={activeTab === tab.key}
+            onClick={() => onTabClick(tab.key)}
+            sx={{
+              borderRadius: { xs: 1.5, sm: 2 },
+              mb: 0.5,
+              py: { xs: 1, sm: 1.2 },
+              px: { xs: 1.5, sm: 2 },
+              backgroundColor: activeTab === tab.key ? `${theme.palette.primary.main}15` : "transparent",
+              borderLeft: activeTab === tab.key ? `3px solid ${theme.palette.primary.main}` : "3px solid transparent",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                backgroundColor: activeTab === tab.key ? `${theme.palette.primary.main}20` : theme.palette.action.hover,
+                transform: "translateX(4px)",
+              },
+              ...(tab.key === "logout" && {
+                color: theme.palette.error.main,
+                "&:hover": {
+                  backgroundColor: `${theme.palette.error.main}10`,
+                },
+              }),
+            }}
+          >
+            <ListItemIcon 
+              sx={{ 
+                minWidth: { xs: 36, sm: 40 },
+                color: activeTab === tab.key ? theme.palette.primary.main : "inherit",
+                ...(tab.key === "logout" && {
+                  color: theme.palette.error.main,
+                }),
+              }}
+            >
+              {tab.icon}
+            </ListItemIcon>
+            <ListItemText 
+              primary={tab.label} 
+              sx={{ 
+                "& .MuiTypography-root": { 
+                  fontSize: { xs: "0.875rem", sm: "0.938rem" },
+                  fontWeight: activeTab === tab.key ? 600 : 500,
+                } 
+              }} 
+            />
+          </ListItemButton>
+        ))}
+      </List>
+    </Box>
+  );
+
   if (isLoading || loading) {
     return (
-      <Container sx={{ py: 8, display: "flex", justifyContent: "center" }}>
-        <CircularProgress />
+      <Container sx={{ py: { xs: 6, sm: 8, md: 10 }, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+        <CircularProgress size={48} thickness={4} />
+        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+          Loading your account...
+        </Typography>
       </Container>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <Container sx={{ py: 8 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>
-          My Account
-        </Typography>
-        <Typography sx={{ mb: 2 }}>Please sign in to view your account.</Typography>
-        <AppButton component={Link} href="/login">
-          Go to Login
-        </AppButton>
+      <Container sx={{ py: { xs: 6, sm: 8, md: 10 } }}>
+        <Fade in timeout={400}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 3, sm: 4, md: 6 },
+              borderRadius: { xs: 2.5, sm: 3 },
+              border: `1px solid ${theme.palette.divider}`,
+              textAlign: "center",
+              maxWidth: 500,
+              mx: "auto",
+            }}
+          >
+            <Typography variant="h4" sx={{ mb: 2, fontWeight: 700, fontSize: { xs: "1.75rem", sm: "2rem" } }}>
+              My Account
+            </Typography>
+            <Typography sx={{ mb: 3, opacity: 0.75, fontSize: { xs: "0.938rem", sm: "1rem" } }}>
+              Please sign in to view your account details and manage your orders.
+            </Typography>
+            <AppButton component={Link} href="/login" size="large">
+              Go to Login
+            </AppButton>
+          </Paper>
+        </Fade>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth={false} sx={{ py: 4, px: { xs: 1.5, md: 3 }, bgcolor: "background.default", minHeight: "100vh" }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={3}>
-          <Card sx={{ ...panelCardSx, position: "sticky", top: 20 }}>
-            <CardContent sx={{ p: 0 }}>
-              <List sx={{ py: 1 }}>
-                {TABS.map((tab) => (
-                  <ListItemButton
-                    key={tab.key}
-                    selected={activeTab === tab.key}
-                    onClick={() => onTabClick(tab.key)}
-                    sx={{
-                      borderRadius: 1.5,
-                      mx: 1,
-                      mb: 0.5,
-                      py: 1,
-                      backgroundColor: activeTab === tab.key ? "rgba(0,0,0,0.04)" : "transparent",
-                      borderLeft: activeTab === tab.key ? (theme) => `3px solid ${theme.palette.primary.main}` : "none",
-                      transition: "all 0.2s ease",
-                      ">svg": { mr: 1.5 },
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 32 }}>{tab.icon}</ListItemIcon>
-                    <ListItemText primary={tab.label} sx={{ "& .MuiTypography-root": { fontSize: 14 } }} />
-                  </ListItemButton>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
+    <Box sx={{ bgcolor: theme.palette.background.default, minHeight: "100vh" }}>
+      <Container maxWidth={false} sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 1.5, sm: 2, md: 3 } }}>
+        {/* Mobile Header */}
+        {isMobile && (
+          <Fade in timeout={300}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                mb: 2,
+                borderRadius: { xs: 2, sm: 2.5 },
+                border: `1px solid ${theme.palette.divider}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: "1.1rem", sm: "1.25rem" } }}>
+                My Account
+              </Typography>
+              <IconButton
+                onClick={() => setMobileDrawerOpen(true)}
+                sx={{
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "rotate(90deg)",
+                    backgroundColor: theme.palette.action.hover,
+                  },
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Paper>
+          </Fade>
+        )}
 
-        <Grid item xs={12} md={9}>
-          {activeTab === "dashboard" ? (
-            <Stack spacing={2.5}>
-              <Box>
-                <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 700 }}>Welcome back, {user?.name || "Member"}!</Typography>
-                <Typography sx={{ opacity: 0.65, fontSize: 15 }}>
-                  Last order: {lastOrder ? new Date(getOrderDate(lastOrder)).toLocaleDateString("en-IN") : "No orders yet"}
-                </Typography>
-              </Box>
-
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ ...statCardSx }}>
-                    <CardContent sx={{ py: 2.5 }}>
-                      <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
-                        <Box>
-                          <Typography sx={{ opacity: 0.65, fontSize: 13, mb: 1 }}>Orders Placed</Typography>
-                          <Typography variant="h4" sx={{ fontWeight: 700 }}>{ordersPlaced}</Typography>
-                        </Box>
-                        <ShoppingBagOutlinedIcon sx={{ opacity: 0.3, fontSize: 32 }} />
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ ...statCardSx }}>
-                    <CardContent sx={{ py: 2.5 }}>
-                      <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
-                        <Box>
-                          <Typography sx={{ opacity: 0.65, fontSize: 13, mb: 1 }}>Wishlist Items</Typography>
-                          <Typography variant="h4" sx={{ fontWeight: 700 }}>{wishlistItems}</Typography>
-                        </Box>
-                        <FavoriteBorderOutlinedIcon sx={{ opacity: 0.3, fontSize: 32 }} />
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ ...statCardSx }}>
-                    <CardContent sx={{ py: 2.5 }}>
-                      <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
-                        <Box>
-                          <Typography sx={{ opacity: 0.65, fontSize: 13, mb: 1 }}>Saved Addresses</Typography>
-                          <Typography variant="h4" sx={{ fontWeight: 700 }}>{savedAddresses}</Typography>
-                        </Box>
-                        <PlaceOutlinedIcon sx={{ opacity: 0.3, fontSize: 32 }} />
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ ...statCardSx }}>
-                    <CardContent sx={{ py: 2.5 }}>
-                      <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
-                        <Box>
-                          <Typography sx={{ opacity: 0.65, fontSize: 13, mb: 1 }}>Reward Points</Typography>
-                          <Typography variant="h4" sx={{ fontWeight: 700 }}>{couponData.points}</Typography>
-                        </Box>
-                        <CardGiftcardOutlinedIcon sx={{ opacity: 0.3, fontSize: 32 }} />
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-
-              <Card sx={{ ...panelCardSx, background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}08 100%)` }}>
-                <CardContent sx={{ py: 2.5 }}>
-                  <Typography variant="h6" sx={{ mb: 1.2, fontWeight: 600 }}>⭐ Loyalty & Rewards</Typography>
-                  <Stack spacing={1}>
-                    <Box>
-                      <Typography sx={{ opacity: 0.7, fontSize: 13 }}>Tier Status</Typography>
-                      <Typography sx={{ fontWeight: 600 }}>{couponData.tier}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography sx={{ opacity: 0.7, fontSize: 13 }}>Points Earned</Typography>
-                      <Typography sx={{ fontWeight: 600 }}>{couponData.points}</Typography>
-                    </Box>
-                    <Chip size="small" color="primary" label="Priority Access + Exclusive Offers" sx={{ alignSelf: "flex-start", mt: 0.5 }} />
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Stack>
-          ) : null}
-
-          {activeTab === "orders" ? (
-            <Stack spacing={2}>
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Your Orders</Typography>
-                <Typography sx={{ opacity: 0.65, fontSize: 14 }}>Showing latest {recentOrders.length} order(s)</Typography>
-              </Box>
-              {recentOrders.map((order) => {
-                const oid = getOrderId(order);
-                const routeOrderId = getOrderRouteId(order);
-                const isOpen = expandedOrder === oid;
-                return (
-                  <Card key={oid} sx={{ ...panelCardSx }}>
-                    <CardContent>
-                      <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={1}>
-                        <Box>
-                          <Typography sx={{ fontWeight: 600 }}>Order ID: {oid}</Typography>
-                          <Typography sx={{ opacity: 0.75 }}>
-                            Date: {new Date(getOrderDate(order)).toLocaleDateString("en-IN")}
-                          </Typography>
-                          <Typography sx={{ opacity: 0.75 }}>Total: {currency(getOrderTotal(order))}</Typography>
-                        </Box>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Chip label={getOrderStatus(order)} color={getOrderStatus(order) === "Delivered" ? "success" : "warning"} />
-                          <AppButton variant="outlined" size="small" onClick={() => setExpandedOrder(isOpen ? "" : oid)}>
-                            {isOpen ? "Hide Details" : "View Details"}
-                          </AppButton>
-                          <AppButton
-                            size="small"
-                            onClick={() => {
-                              if (!routeOrderId) {
-                                toast.info("Tracking is not available for this order.");
-                                return;
-                              }
-                              router.push(`/track-order/${routeOrderId}`);
-                            }}
-                          >
-                            Track Order
-                          </AppButton>
-                        </Stack>
-                      </Stack>
-                      {isOpen ? (
-                        <Box sx={{ mt: 2 }}>
-                          <Divider sx={{ mb: 2 }} />
-                          <Typography sx={{ mb: 1, fontWeight: 600 }}>Products Purchased</Typography>
-                          {getOrderItems(order).map((item, idx) => (
-                            <Typography key={`${oid}-${idx}`} sx={{ opacity: 0.8, mb: 0.5 }}>
-                              {item?.name || item?.productName || item?.product?.name || "Item"} | Size: {item?.size || item?.variant?.size || "N/A"} | Color: {item?.color || item?.variant?.color || "N/A"} | Qty: {item?.qty || item?.quantity || 1}
-                            </Typography>
-                          ))}
-                          <Typography sx={{ mt: 1.5, opacity: 0.8 }}>
-                            Delivery Address: {formatOrderAddress(order?.shippingAddress || order?.address)}
-                          </Typography>
-                          <Typography sx={{ opacity: 0.8 }}>
-                            Payment Method: {order?.paymentMethod || "Online Payment"}
-                          </Typography>
-                          <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
-                            <AppButton variant="outlined" size="small" onClick={() => toast.info("Invoice download will be available soon.")}>
-                              Download Invoice
-                            </AppButton>
-                            <AppButton variant="outlined" size="small" onClick={() => setActiveTab("returns")}>
-                              Request Return
-                            </AppButton>
-                          </Stack>
-                        </Box>
-                      ) : null}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </Stack>
-          ) : null}
-
-          {activeTab === "wishlist" ? (
-            <Card sx={{ ...panelCardSx }}>
-              <CardContent>
-                <Typography variant="h5" sx={{ mb: 1, fontWeight: 700 }}>❤️ Your Wishlist</Typography>
-                <Typography sx={{ opacity: 0.65, mb: 2, fontSize: 15 }}>
-                  You have <strong>{wishlistItems}</strong> saved item(s). Continue where you left off.
-                </Typography>
-                <AppButton component={Link} href="/wishlist" size="large">
-                  View Wishlist
-                </AppButton>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {activeTab === "addresses" ? (
-            <Stack spacing={2}>
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Address Management</Typography>
-                <Typography sx={{ opacity: 0.65, fontSize: 14 }}>Manage your shipping and delivery addresses</Typography>
-              </Box>
-              <Grid container spacing={2}>
-                <Grid item xs={12} lg={7}>
-                  <Card sx={{ ...panelCardSx }}>
-                    <CardContent>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <AppInput label="Name" value={addressForm.name} onChange={(e) => setAddressForm((p) => ({ ...p, name: e.target.value }))} />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <AppInput label="Phone" value={addressForm.phone} onChange={(e) => setAddressForm((p) => ({ ...p, phone: e.target.value }))} />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <AppInput label="Address Line 1" value={addressForm.line1} onChange={(e) => setAddressForm((p) => ({ ...p, line1: e.target.value }))} />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <AppInput label="Address Line 2" value={addressForm.line2} onChange={(e) => setAddressForm((p) => ({ ...p, line2: e.target.value }))} />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <AppInput label="City" value={addressForm.city} onChange={(e) => setAddressForm((p) => ({ ...p, city: e.target.value }))} />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <AppInput label="State" value={addressForm.state} onChange={(e) => setAddressForm((p) => ({ ...p, state: e.target.value }))} />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <AppInput label="Pincode" value={addressForm.pincode} onChange={(e) => setAddressForm((p) => ({ ...p, pincode: e.target.value }))} />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <AppInput label="Landmark" value={addressForm.landmark} onChange={(e) => setAddressForm((p) => ({ ...p, landmark: e.target.value }))} />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <AppInput label="Delivery Instructions" value={addressForm.instructions} onChange={(e) => setAddressForm((p) => ({ ...p, instructions: e.target.value }))} />
-                    </Grid>
-                  </Grid>
-                  <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                    <AppButton onClick={saveAddress}>{addressForm.id ? "Update Address" : "Add Address"}</AppButton>
-                    {addressForm.id ? (
-                      <AppButton
-                        variant="outlined"
-                        onClick={() =>
-                          setAddressForm({
-                            id: "",
-                            name: "",
-                            line1: "",
-                            line2: "",
-                            city: "",
-                            state: "",
-                            pincode: "",
-                            phone: "",
-                            landmark: "",
-                            instructions: "",
-                          })
-                        }
-                      >
-                        Cancel Edit
-                      </AppButton>
-                    ) : null}
-                  </Stack>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} lg={5}>
-                  <Stack spacing={1.2}>
-                    <Typography sx={{ opacity: 0.75, fontSize: 14 }}>Saved Addresses ({addresses.length})</Typography>
-                    {recentAddresses.map((address) => (
-                <Card key={address.id} sx={{ ...panelCardSx }}>
-                  <CardContent sx={{ py: 1.6 }}>
-                    <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={1}>
-                      <Box>
-                        <Stack direction="row" spacing={1} sx={{ mb: 0.5 }}>
-                          <Typography sx={{ fontWeight: 600 }}>{address.name}</Typography>
-                          {address.isDefault ? <Chip size="small" color="secondary" label="Default" /> : null}
-                        </Stack>
-                        <Typography sx={{ opacity: 0.8 }}>
-                          {address.line1} {address.line2}
-                        </Typography>
-                        <Typography sx={{ opacity: 0.8 }}>
-                          {address.city}, {address.state} - {address.pincode}
-                        </Typography>
-                        <Typography sx={{ opacity: 0.8 }}>Phone: {address.phone}</Typography>
-                        {address.landmark ? <Typography sx={{ opacity: 0.75 }}>Landmark: {address.landmark}</Typography> : null}
-                        {address.instructions ? <Typography sx={{ opacity: 0.75 }}>Instructions: {address.instructions}</Typography> : null}
-                      </Box>
-                      <Stack direction="row" spacing={0.5}>
-                        <IconButton onClick={() => setAddressForm(address)}><EditOutlinedIcon /></IconButton>
-                        <IconButton onClick={() => deleteAddress(address.id)}><DeleteOutlineOutlinedIcon /></IconButton>
-                        {!address.isDefault ? (
-                          <AppButton size="small" variant="outlined" onClick={() => setDefaultAddress(address.id)}>
-                            Set Default
-                          </AppButton>
-                        ) : null}
-                      </Stack>
-                    </Stack>
-                  </CardContent>
+        <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
+          {/* Desktop Sidebar */}
+          {!isMobile && (
+            <Grid item xs={12} md={3}>
+              <Fade in timeout={400}>
+                <Card 
+                  sx={{ 
+                    ...panelCardSx, 
+                    position: "sticky", 
+                    top: { md: 24 },
+                    maxHeight: "calc(100vh - 48px)",
+                    overflow: "auto",
+                  }}
+                >
+                  <SidebarContent />
                 </Card>
-                    ))}
-                  </Stack>
-                </Grid>
-              </Grid>
-            </Stack>
-          ) : null}
+              </Fade>
+            </Grid>
+          )}
 
-          {activeTab === "payments" ? (
-            <Stack spacing={2}>
+          {/* Mobile Drawer */}
+          <Drawer
+            anchor="left"
+            open={mobileDrawerOpen}
+            onClose={() => setMobileDrawerOpen(false)}
+            PaperProps={{
+              sx: {
+                width: { xs: "85%", sm: 320 },
+                maxWidth: "100%",
+                borderRadius: "0 16px 16px 0",
+              },
+            }}
+          >
+            <Box sx={{ display: "flex", justifyContent: "flex-end", p: 1 }}>
+              <IconButton
+                onClick={() => setMobileDrawerOpen(false)}
+                sx={{
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    transform: "rotate(90deg)",
+                  },
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            <SidebarContent />
+          </Drawer>
+
+          {/* Main Content */}
+          <Grid item xs={12} md={9}>
+            <Fade in timeout={500}>
               <Box>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Payment Methods</Typography>
-                <Typography sx={{ opacity: 0.65, fontSize: 14 }}>Manage your saved payment options</Typography>
-              </Box>
-              {paymentMethods.length ? (
-                <Grid container spacing={1.5}>
-                  {paymentMethods.map((method) => (
-                    <Grid item xs={12} md={4} key={method.id}>
-                      <Card sx={{ ...panelCardSx }}>
-                        <CardContent sx={{ py: 2 }}>
-                          <Typography>{method.label}</Typography>
-                          <Typography sx={{ opacity: 0.75 }}>
-                            {method.type}{method.masked ? ` | ${method.masked}` : ""}
-                          </Typography>
+                {/* Dashboard Tab */}
+                {activeTab === "dashboard" && (
+                  <Stack spacing={{ xs: 2.5, sm: 3 }}>
+                    {/* Welcome Section */}
+                    <Box>
+                      <Typography 
+                        variant="h4" 
+                        sx={{ 
+                          mb: 0.5, 
+                          fontWeight: 700,
+                          fontSize: { xs: "1.75rem", sm: "2rem", md: "2.25rem" },
+                          background: `linear-gradient(135deg, ${theme.palette.text.primary}, ${theme.palette.primary.main})`,
+                          backgroundClip: "text",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                        }}
+                      >
+                        Welcome back, {user?.name || "Member"}!
+                      </Typography>
+                      <Typography sx={{ opacity: 0.65, fontSize: { xs: "0.875rem", sm: "0.938rem" } }}>
+                        Last order: {lastOrder ? new Date(getOrderDate(lastOrder)).toLocaleDateString("en-IN") : "No orders yet"}
+                      </Typography>
+                    </Box>
+
+                    {/* Stats Grid */}
+                    <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+                      {[
+                        { label: "Orders Placed", value: ordersPlaced, icon: <ShoppingBagOutlinedIcon />, color: theme.palette.primary.main },
+                        { label: "Wishlist Items", value: wishlistItems, icon: <FavoriteBorderOutlinedIcon />, color: theme.palette.error.main },
+                        { label: "Saved Addresses", value: savedAddresses, icon: <PlaceOutlinedIcon />, color: theme.palette.success.main },
+                        { label: "Reward Points", value: couponData.points, icon: <CardGiftcardOutlinedIcon />, color: theme.palette.warning.main },
+                      ].map((stat, index) => (
+                        <Grid item xs={6} sm={6} md={3} key={stat.label}>
+                          <Grow in timeout={500 + index * 100}>
+                            <Card sx={statCardSx}>
+                              <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+                                <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+                                  <Box sx={{ position: "relative", zIndex: 1 }}>
+                                    <Typography sx={{ opacity: 0.7, fontSize: { xs: "0.75rem", sm: "0.813rem" }, mb: { xs: 0.8, sm: 1 }, fontWeight: 500 }}>
+                                      {stat.label}
+                                    </Typography>
+                                    <Typography 
+                                      variant="h4" 
+                                      sx={{ 
+                                        fontWeight: 700,
+                                        fontSize: { xs: "1.75rem", sm: "2rem" },
+                                        color: stat.color,
+                                      }}
+                                    >
+                                      {stat.value}
+                                    </Typography>
+                                  </Box>
+                                  <Box
+                                    sx={{
+                                      opacity: 0.2,
+                                      color: stat.color,
+                                      "& svg": {
+                                        fontSize: { xs: 32, sm: 36 },
+                                      },
+                                    }}
+                                  >
+                                    {stat.icon}
+                                  </Box>
+                                </Stack>
+                              </CardContent>
+                            </Card>
+                          </Grow>
+                        </Grid>
+                      ))}
+                    </Grid>
+
+                    {/* Loyalty & Rewards Card */}
+                    <Grow in timeout={700}>
+                      <Card 
+                        sx={{ 
+                          ...panelCardSx, 
+                          background: `linear-gradient(135deg, ${theme.palette.primary.main}20 0%, ${theme.palette.primary.main}10 100%)`,
+                          border: `1px solid ${theme.palette.primary.main}40`,
+                        }}
+                      >
+                        <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+                          <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography 
+                                variant="h6" 
+                                sx={{ 
+                                  mb: 1.5, 
+                                  fontWeight: 700,
+                                  fontSize: { xs: "1.1rem", sm: "1.25rem" },
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                ⭐ Loyalty & Rewards
+                              </Typography>
+                              <Grid container spacing={2}>
+                                <Grid item xs={6}>
+                                  <Typography sx={{ opacity: 0.7, fontSize: { xs: "0.75rem", sm: "0.813rem" }, mb: 0.5 }}>Tier Status</Typography>
+                                  <Typography sx={{ fontWeight: 700, fontSize: { xs: "1rem", sm: "1.125rem" } }}>{couponData.tier}</Typography>
+                                </Grid>
+                                <Grid item xs={6}>
+                                  <Typography sx={{ opacity: 0.7, fontSize: { xs: "0.75rem", sm: "0.813rem" }, mb: 0.5 }}>Points Earned</Typography>
+                                  <Typography sx={{ fontWeight: 700, fontSize: { xs: "1rem", sm: "1.125rem" }, color: theme.palette.primary.main }}>{couponData.points}</Typography>
+                                </Grid>
+                              </Grid>
+                            </Box>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              <Chip 
+                                size="medium" 
+                                color="primary" 
+                                icon={<TrendingUpIcon />}
+                                label="Priority Access" 
+                                sx={{ 
+                                  fontWeight: 600,
+                                  fontSize: { xs: "0.813rem", sm: "0.875rem" },
+                                  px: { xs: 1, sm: 1.5 },
+                                }} 
+                              />
+                            </Box>
+                          </Stack>
                         </CardContent>
                       </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              ) : (
-                <Typography sx={{ opacity: 0.75 }}>No saved payment methods.</Typography>
-              )}
-            </Stack>
-          ) : null}
+                    </Grow>
+                  </Stack>
+                )}
 
-          {activeTab === "profile" ? (
-            <Card sx={{ ...panelCardSx }}>
-              <CardContent>
-                <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Profile Details</Typography>
-                <Grid container spacing={1.5}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography sx={{ opacity: 0.7, fontSize: 13 }}>Name</Typography>
-                    <Typography sx={{ fontWeight: 600 }}>{user?.name || "-"}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography sx={{ opacity: 0.7, fontSize: 13 }}>Email</Typography>
-                    <Typography sx={{ fontWeight: 600 }}>{user?.email || "-"}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography sx={{ opacity: 0.7, fontSize: 13 }}>Phone</Typography>
-                    <Typography sx={{ fontWeight: 600 }}>{user?.phone || "-"}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography sx={{ opacity: 0.7, fontSize: 13 }}>Gender</Typography>
-                    <Typography sx={{ fontWeight: 600 }}>
-                      {user?.gender
-                        ? String(user.gender).charAt(0).toUpperCase() + String(user.gender).slice(1)
-                        : "-"}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {activeTab === "returns" ? (
-            <Stack spacing={2}>
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Returns & Exchanges</Typography>
-                <Typography sx={{ opacity: 0.65, fontSize: 14 }}>Showing latest {recentReturns.length} item(s)</Typography>
-              </Box>
-              {recentReturns.map((entry) => (
-                <Card key={entry.id} sx={{ ...panelCardSx }}>
-                  <CardContent>
-                    <Typography sx={{ fontWeight: 600 }}>
-                      {entry.name} | Order: {entry.orderId}
-                    </Typography>
-                    <Typography sx={{ opacity: 0.75 }}>
-                      Size: {entry.size} | Color: {entry.color}
-                    </Typography>
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 1.2 }}>
-                      <AppInput
-                        select
-                        size="small"
-                        label="Reason"
-                        value={entry.reason || ""}
-                        onChange={(e) =>
-                          setReturns((prev) =>
-                            prev.map((item) =>
-                              item.id === entry.id ? { ...item, reason: e.target.value } : item
-                            )
-                          )
-                        }
-                        sx={{ minWidth: 180 }}
-                      >
-                        <MenuItem value="">Select reason</MenuItem>
-                        <MenuItem value="size-issue">Size issue</MenuItem>
-                        <MenuItem value="quality-issue">Quality issue</MenuItem>
-                        <MenuItem value="wrong-item">Wrong item received</MenuItem>
-                      </AppInput>
-                      <AppButton component="label" variant="outlined" size="small">
-                        Upload Image
-                        <input
-                          hidden
-                          type="file"
-                          onChange={(e) => updateReturnImage(entry.id, e.target.files?.[0])}
-                        />
-                      </AppButton>
-                      <AppButton size="small" onClick={() => requestReturn(entry.id, entry.reason)}>
-                        Request Return
-                      </AppButton>
-                      <Chip size="small" color={entry.status === "Requested" ? "warning" : "success"} label={entry.status} />
-                    </Stack>
-                    {entry.image ? (
-                      <Typography sx={{ fontSize: 13, opacity: 0.72, mt: 0.7 }}>
-                        Uploaded: {entry.image}
+                {/* Orders Tab */}
+                {activeTab === "orders" && (
+                  <Stack spacing={{ xs: 2, sm: 2.5 }}>
+                    <Box>
+                      <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
+                        Your Orders
                       </Typography>
-                    ) : null}
-                  </CardContent>
-                </Card>
-              ))}
-            </Stack>
-          ) : null}
+                      <Typography sx={{ opacity: 0.65, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                        Showing latest {recentOrders.length} order(s)
+                      </Typography>
+                    </Box>
+                    
+                    {recentOrders.map((order, index) => {
+                      const oid = getOrderId(order);
+                      const routeOrderId = getOrderRouteId(order);
+                      const isOpen = expandedOrder === oid;
+                      
+                      return (
+                        <Grow in timeout={400 + index * 100} key={oid}>
+                          <Card sx={panelCardSx}>
+                            <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+                              <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={{ xs: 2, sm: 1 }}>
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography sx={{ fontWeight: 700, fontSize: { xs: "0.938rem", sm: "1rem" }, mb: 0.5 }}>
+                                    Order ID: {oid}
+                                  </Typography>
+                                  <Typography sx={{ opacity: 0.75, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                                    Date: {new Date(getOrderDate(order)).toLocaleDateString("en-IN")}
+                                  </Typography>
+                                  <Typography sx={{ opacity: 0.75, fontSize: { xs: "0.813rem", sm: "0.875rem" }, fontWeight: 600, color: theme.palette.success.main }}>
+                                    Total: {currency(getOrderTotal(order))}
+                                  </Typography>
+                                </Box>
+                                <Stack direction={{ xs: "row", sm: "row" }} spacing={1} alignItems="flex-start" flexWrap="wrap">
+                                  <Chip 
+                                    label={getOrderStatus(order)} 
+                                    color={getOrderStatus(order) === "Delivered" ? "success" : "warning"}
+                                    sx={{ 
+                                      fontWeight: 600,
+                                      fontSize: { xs: "0.75rem", sm: "0.813rem" },
+                                    }}
+                                  />
+                                  <AppButton variant="outlined" size="small" onClick={() => setExpandedOrder(isOpen ? "" : oid)}>
+                                    {isOpen ? "Hide" : "Details"}
+                                  </AppButton>
+                                  <AppButton
+                                    size="small"
+                                    onClick={() => {
+                                      if (!routeOrderId) {
+                                        toast.info("Tracking not available.");
+                                        return;
+                                      }
+                                      router.push(`/track-order/${routeOrderId}`);
+                                    }}
+                                  >
+                                    Track
+                                  </AppButton>
+                                </Stack>
+                              </Stack>
+                              
+                              {isOpen && (
+                                <Fade in timeout={300}>
+                                  <Box sx={{ mt: 2 }}>
+                                    <Divider sx={{ mb: 2 }} />
+                                    <Typography sx={{ mb: 1.5, fontWeight: 700, fontSize: { xs: "0.938rem", sm: "1rem" } }}>
+                                      Products Purchased
+                                    </Typography>
+                                    {getOrderItems(order).map((item, idx) => (
+                                      <Typography key={`${oid}-${idx}`} sx={{ opacity: 0.8, mb: 0.8, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                                        • {item?.name || item?.productName || item?.product?.name || "Item"} | 
+                                        Size: {item?.size || item?.variant?.size || "N/A"} | 
+                                        Color: {item?.color || item?.variant?.color || "N/A"} | 
+                                        Qty: {item?.qty || item?.quantity || 1}
+                                      </Typography>
+                                    ))}
+                                    <Box sx={{ mt: 2, p: 2, borderRadius: 2, bgcolor: theme.palette.action.hover }}>
+                                      <Typography sx={{ opacity: 0.8, fontSize: { xs: "0.813rem", sm: "0.875rem" }, mb: 1 }}>
+                                        <strong>Delivery Address:</strong> {formatOrderAddress(order?.shippingAddress || order?.address)}
+                                      </Typography>
+                                      <Typography sx={{ opacity: 0.8, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                                        <strong>Payment Method:</strong> {order?.paymentMethod || "Online Payment"}
+                                      </Typography>
+                                    </Box>
+                                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 2 }}>
+                                      <AppButton variant="outlined" size="small" onClick={() => toast.info("Invoice download coming soon.")}>
+                                        Download Invoice
+                                      </AppButton>
+                                      <AppButton variant="outlined" size="small" onClick={() => setActiveTab("returns")}>
+                                        Request Return
+                                      </AppButton>
+                                    </Stack>
+                                  </Box>
+                                </Fade>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </Grow>
+                      );
+                    })}
+                  </Stack>
+                )}
 
+                {/* Wishlist Tab */}
+                {activeTab === "wishlist" && (
+                  <Grow in timeout={400}>
+                    <Card sx={panelCardSx}>
+                      <CardContent sx={{ p: { xs: 3, sm: 4 }, textAlign: "center" }}>
+                        <Box sx={{ mb: 3 }}>
+                          <FavoriteBorderOutlinedIcon sx={{ fontSize: { xs: 48, sm: 64 }, opacity: 0.3, mb: 2, color: theme.palette.error.main }} />
+                          <Typography variant="h5" sx={{ mb: 1.5, fontWeight: 700, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
+                            ❤️ Your Wishlist
+                          </Typography>
+                          <Typography sx={{ opacity: 0.7, fontSize: { xs: "0.875rem", sm: "0.938rem" }, mb: 0.5 }}>
+                            You have <strong style={{ color: theme.palette.primary.main }}>{wishlistItems}</strong> saved item(s).
+                          </Typography>
+                          <Typography sx={{ opacity: 0.65, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                            Continue where you left off and complete your purchase.
+                          </Typography>
+                        </Box>
+                        <AppButton component={Link} href="/wishlist" size="large">
+                          View Wishlist
+                        </AppButton>
+                      </CardContent>
+                    </Card>
+                  </Grow>
+                )}
+
+                {/* Addresses Tab */}
+                {activeTab === "addresses" && (
+                  <Stack spacing={{ xs: 2, sm: 2.5 }}>
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      justifyContent="space-between"
+                      alignItems={{ xs: "stretch", sm: "center" }}
+                      spacing={1.5}
+                    >
+                      <Box>
+                        <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
+                          Your Addresses
+                        </Typography>
+                        <Typography sx={{ opacity: 0.65, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                          Manage your shipping and delivery addresses
+                        </Typography>
+                      </Box>
+                      <AppButton onClick={startAddAddress} fullWidth={isSmallMobile}>
+                        Add Address
+                      </AppButton>
+                    </Stack>
+
+                    {showAddressForm && (
+                        <Card sx={panelCardSx}>
+                          <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+                            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: { xs: "1rem", sm: "1.125rem" } }}>
+                              {addressForm.id ? "Edit Address" : "Add New Address"}
+                            </Typography>
+                            <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+                              <Grid item xs={12} sm={6}>
+                                <AppInput 
+                                  label="Name" 
+                                  value={addressForm.name} 
+                                  onChange={(e) => setAddressForm((p) => ({ ...p, name: e.target.value }))}
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <AppInput 
+                                  label="Phone" 
+                                  value={addressForm.phone} 
+                                  onChange={(e) => setAddressForm((p) => ({ ...p, phone: e.target.value }))}
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <AppInput 
+                                  label="Address Line 1" 
+                                  value={addressForm.line1} 
+                                  onChange={(e) => setAddressForm((p) => ({ ...p, line1: e.target.value }))}
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <AppInput 
+                                  label="Address Line 2" 
+                                  value={addressForm.line2} 
+                                  onChange={(e) => setAddressForm((p) => ({ ...p, line2: e.target.value }))}
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={4}>
+                                <AppInput 
+                                  label="City" 
+                                  value={addressForm.city} 
+                                  onChange={(e) => setAddressForm((p) => ({ ...p, city: e.target.value }))}
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={4}>
+                                <AppInput 
+                                  label="State" 
+                                  value={addressForm.state} 
+                                  onChange={(e) => setAddressForm((p) => ({ ...p, state: e.target.value }))}
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={4}>
+                                <AppInput 
+                                  label="Pincode" 
+                                  value={addressForm.pincode} 
+                                  onChange={(e) => setAddressForm((p) => ({ ...p, pincode: e.target.value }))}
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <AppInput 
+                                  label="Landmark" 
+                                  value={addressForm.landmark} 
+                                  onChange={(e) => setAddressForm((p) => ({ ...p, landmark: e.target.value }))}
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <AppInput 
+                                  label="Delivery Instructions" 
+                                  value={addressForm.instructions} 
+                                  onChange={(e) => setAddressForm((p) => ({ ...p, instructions: e.target.value }))}
+                                  fullWidth
+                                />
+                              </Grid>
+                            </Grid>
+                            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 2.5 }}>
+                              <AppButton onClick={saveAddress} fullWidth={isSmallMobile}>
+                                {addressForm.id ? "Update Address" : "Add Address"}
+                              </AppButton>
+                              <AppButton
+                                variant="outlined"
+                                onClick={cancelAddressForm}
+                                fullWidth={isSmallMobile}
+                              >
+                                {addressForm.id ? "Cancel Edit" : "Cancel"}
+                              </AppButton>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                    )}
+
+                    <Stack spacing={{ xs: 1.5, sm: 2 }}>
+                      <Typography sx={{ opacity: 0.75, fontSize: { xs: "0.875rem", sm: "0.938rem" }, fontWeight: 600 }}>
+                        Saved Addresses ({addresses.length})
+                      </Typography>
+                      {addresses.length ? (
+                        addresses.map((address, index) => (
+                            <Grow in timeout={400 + index * 100} key={address.id}>
+                              <Card sx={panelCardSx}>
+                                <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+                                  <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={{ xs: 1.5, sm: 1 }}>
+                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                      <Stack direction="row" spacing={1} sx={{ mb: 0.8, flexWrap: "wrap" }}>
+                                        <Typography sx={{ fontWeight: 700, fontSize: { xs: "0.938rem", sm: "1rem" } }}>
+                                          {address.name}
+                                        </Typography>
+                                        {address.isDefault && (
+                                          <Chip size="small" color="secondary" label="Default" sx={{ height: 20 }} />
+                                        )}
+                                      </Stack>
+                                      <Typography sx={{ opacity: 0.8, fontSize: { xs: "0.813rem", sm: "0.875rem" }, mb: 0.3 }}>
+                                        {address.line1} {address.line2}
+                                      </Typography>
+                                      <Typography sx={{ opacity: 0.8, fontSize: { xs: "0.813rem", sm: "0.875rem" }, mb: 0.3 }}>
+                                        {address.city}, {address.state} - {address.pincode}
+                                      </Typography>
+                                      <Typography sx={{ opacity: 0.8, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                                        Phone: {address.phone}
+                                      </Typography>
+                                      {address.landmark && (
+                                        <Typography sx={{ opacity: 0.7, fontSize: { xs: "0.75rem", sm: "0.813rem" }, mt: 0.5 }}>
+                                          Landmark: {address.landmark}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                    <Stack direction="row" spacing={0.5} sx={{ alignSelf: "flex-start" }}>
+                                      <IconButton 
+                                        size="small"
+                                        onClick={() => startEditAddress(address)}
+                                        sx={{
+                                          transition: "all 0.2s ease",
+                                          "&:hover": {
+                                            color: theme.palette.primary.main,
+                                            transform: "scale(1.1)",
+                                          },
+                                        }}
+                                      >
+                                        <EditOutlinedIcon fontSize="small" />
+                                      </IconButton>
+                                      <IconButton 
+                                        size="small"
+                                        onClick={() => deleteAddress(address.id)}
+                                        sx={{
+                                          transition: "all 0.2s ease",
+                                          "&:hover": {
+                                            color: theme.palette.error.main,
+                                            transform: "scale(1.1)",
+                                          },
+                                        }}
+                                      >
+                                        <DeleteOutlineOutlinedIcon fontSize="small" />
+                                      </IconButton>
+                                      {!address.isDefault && (
+                                        <AppButton size="small" variant="outlined" onClick={() => setDefaultAddress(address.id)}>
+                                          Set Default
+                                        </AppButton>
+                                      )}
+                                    </Stack>
+                                  </Stack>
+                                </CardContent>
+                              </Card>
+                            </Grow>
+                          ))
+                      ) : (
+                        <Card sx={panelCardSx}>
+                          <CardContent sx={{ p: { xs: 3, sm: 4 }, textAlign: "center" }}>
+                            <PlaceOutlinedIcon sx={{ fontSize: { xs: 48, sm: 60 }, opacity: 0.28, mb: 1.5 }} />
+                            <Typography sx={{ fontWeight: 700, mb: 0.75 }}>
+                              No saved addresses yet
+                            </Typography>
+                            <Typography sx={{ opacity: 0.72, mb: 2, fontSize: { xs: "0.875rem", sm: "0.938rem" } }}>
+                              Add your first delivery address to make checkout faster.
+                            </Typography>
+                            <AppButton onClick={startAddAddress}>Add Address</AppButton>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </Stack>
+                  </Stack>
+                )}
+
+                {/* Payment Methods Tab */}
+                {activeTab === "payments" && (
+                  <Stack spacing={{ xs: 2, sm: 2.5 }}>
+                    <Box>
+                      <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
+                        Payment Methods
+                      </Typography>
+                      <Typography sx={{ opacity: 0.65, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                        Manage your saved payment options
+                      </Typography>
+                    </Box>
+                    {paymentMethods.length ? (
+                      <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+                        {paymentMethods.map((method, index) => (
+                          <Grid item xs={12} sm={6} md={4} key={method.id}>
+                            <Grow in timeout={400 + index * 100}>
+                              <Card sx={panelCardSx}>
+                                <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+                                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                                    <Box>
+                                      <Typography sx={{ fontWeight: 700, fontSize: { xs: "0.938rem", sm: "1rem" }, mb: 0.5 }}>
+                                        {method.label}
+                                      </Typography>
+                                      <Typography sx={{ opacity: 0.75, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                                        {method.type}{method.masked ? ` • ${method.masked}` : ""}
+                                      </Typography>
+                                    </Box>
+                                    <CreditCardOutlinedIcon sx={{ opacity: 0.3, fontSize: 32 }} />
+                                  </Stack>
+                                </CardContent>
+                              </Card>
+                            </Grow>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    ) : (
+                      <Grow in timeout={400}>
+                        <Card sx={panelCardSx}>
+                          <CardContent sx={{ p: { xs: 3, sm: 4 }, textAlign: "center" }}>
+                            <CreditCardOutlinedIcon sx={{ fontSize: { xs: 48, sm: 64 }, opacity: 0.3, mb: 2 }} />
+                            <Typography sx={{ opacity: 0.75, fontSize: { xs: "0.875rem", sm: "0.938rem" } }}>
+                              No saved payment methods yet.
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grow>
+                    )}
+                  </Stack>
+                )}
+
+                {/* Profile Tab */}
+                {activeTab === "profile" && (
+                  <Grow in timeout={400}>
+                    <Card sx={panelCardSx}>
+                      <CardContent sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
+                        <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
+                          Profile Details
+                        </Typography>
+                        <Grid container spacing={{ xs: 2, sm: 2.5 }}>
+                          {[
+                            { label: "Name", value: user?.name || "-" },
+                            { label: "Email", value: user?.email || "-" },
+                            { label: "Phone", value: user?.phone || "-" },
+                            { label: "Gender", value: user?.gender ? String(user.gender).charAt(0).toUpperCase() + String(user.gender).slice(1) : "-" },
+                          ].map((field, index) => (
+                            <Grid item xs={12} sm={6} key={field.label}>
+                              <Grow in timeout={400 + index * 80}>
+                                <Box 
+                                  sx={{ 
+                                    p: 2,
+                                    borderRadius: 2,
+                                    bgcolor: theme.palette.action.hover,
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                      bgcolor: theme.palette.action.selected,
+                                      transform: "translateY(-2px)",
+                                    },
+                                  }}
+                                >
+                                  <Typography sx={{ opacity: 0.7, fontSize: { xs: "0.75rem", sm: "0.813rem" }, mb: 0.5, fontWeight: 500 }}>
+                                    {field.label}
+                                  </Typography>
+                                  <Typography sx={{ fontWeight: 700, fontSize: { xs: "0.938rem", sm: "1rem" } }}>
+                                    {field.value}
+                                  </Typography>
+                                </Box>
+                              </Grow>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </CardContent>
+                    </Card>
+                  </Grow>
+                )}
+
+                {/* Returns Tab */}
+                {activeTab === "returns" && (
+                  <Stack spacing={{ xs: 2, sm: 2.5 }}>
+                    <Box>
+                      <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
+                        Returns & Exchanges
+                      </Typography>
+                      <Typography sx={{ opacity: 0.65, fontSize: { xs: "0.813rem", sm: "0.875rem" } }}>
+                        Showing latest {recentReturns.length} item(s)
+                      </Typography>
+                    </Box>
+                    {recentReturns.map((entry, index) => (
+                      <Grow in timeout={400 + index * 100} key={entry.id}>
+                        <Card sx={panelCardSx}>
+                          <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+                            <Typography sx={{ fontWeight: 700, fontSize: { xs: "0.938rem", sm: "1rem" }, mb: 0.5 }}>
+                              {entry.name}
+                            </Typography>
+                            <Typography sx={{ opacity: 0.75, fontSize: { xs: "0.813rem", sm: "0.875rem" }, mb: 1.5 }}>
+                              Order: {entry.orderId} | Size: {entry.size} | Color: {entry.color}
+                            </Typography>
+                            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} flexWrap="wrap">
+                              <AppInput
+                                select
+                                size="small"
+                                label="Reason"
+                                value={entry.reason || ""}
+                                onChange={(e) =>
+                                  setReturns((prev) =>
+                                    prev.map((item) =>
+                                      item.id === entry.id ? { ...item, reason: e.target.value } : item
+                                    )
+                                  )
+                                }
+                                sx={{ minWidth: { xs: "100%", sm: 200 } }}
+                              >
+                                <MenuItem value="">Select reason</MenuItem>
+                                <MenuItem value="size-issue">Size issue</MenuItem>
+                                <MenuItem value="quality-issue">Quality issue</MenuItem>
+                                <MenuItem value="wrong-item">Wrong item received</MenuItem>
+                              </AppInput>
+                              <AppButton component="label" variant="outlined" size="small">
+                                Upload Image
+                                <input
+                                  hidden
+                                  type="file"
+                                  onChange={(e) => updateReturnImage(entry.id, e.target.files?.[0])}
+                                />
+                              </AppButton>
+                              <AppButton size="small" onClick={() => requestReturn(entry.id, entry.reason)}>
+                                Request Return
+                              </AppButton>
+                              <Chip 
+                                size="small" 
+                                color={entry.status === "Requested" ? "warning" : "success"} 
+                                label={entry.status}
+                                sx={{ fontWeight: 600 }}
+                              />
+                            </Stack>
+                            {entry.image && (
+                              <Typography sx={{ fontSize: { xs: "0.75rem", sm: "0.813rem" }, opacity: 0.7, mt: 1 }}>
+                                Uploaded: {entry.image}
+                              </Typography>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Grow>
+                    ))}
+                  </Stack>
+                )}
+              </Box>
+            </Fade>
+          </Grid>
         </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </Box>
   );
 }

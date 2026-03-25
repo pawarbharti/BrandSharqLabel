@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, sanitizeUser, setUserPassword } from "@/lib/auth";
 import { getStore } from "@/lib/demoStore";
 
 export async function PUT(req, { params }) {
@@ -18,7 +18,13 @@ export async function PUT(req, { params }) {
   if (body.action === "block") {
     user.isBlocked = body.value !== undefined ? Boolean(body.value) : true;
   } else if (body.action === "reset_password") {
-    user.password = body.newPassword || "password123";
+    if (!body.newPassword) {
+      return NextResponse.json(
+        { error: "A new password is required for reset" },
+        { status: 400 }
+      );
+    }
+    setUserPassword(user, body.newPassword);
   } else if (body.action === "set_role") {
     user.role = body.role || user.role || "user";
   } else {
@@ -26,10 +32,6 @@ export async function PUT(req, { params }) {
   }
 
   return NextResponse.json({
-    user: {
-      id: user.id,
-      role: user.role || "user",
-      isBlocked: Boolean(user.isBlocked),
-    },
+    user: sanitizeUser(user),
   });
 }

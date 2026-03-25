@@ -1,42 +1,36 @@
-import { Box, Container, Stack, Typography } from "@mui/material";
+"use client";
+
+import { Box, Container, Divider, Grid, Paper, Typography, useTheme } from "@mui/material";
+import { termsPageContent } from "@/workflow/pages/terms";
 
 export default function TermsPage() {
-  return (
-    <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "background.default", minHeight: "70vh" }}>
-      <Container maxWidth="md">
-        <Typography variant="h3" sx={{ mb: 1 }}>
-          Terms and Conditions
-        </Typography>
-        <Typography sx={{ opacity: 0.75, mb: 4 }}>
-          Last updated: March 9, 2026
-        </Typography>
+  const theme = useTheme();
+  const brand = theme.palette.brand;
 
-        <Stack spacing={3}>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Orders and Payments</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              Orders are confirmed only after successful payment authorization and stock availability.
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Pricing and Availability</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              Prices and stock may change without prior notice. Product images are representative.
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Intellectual Property</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              All content and branding on this website are the property of Sharq Label and may not be reused without permission.
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Liability</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              Sharq Label is not liable for delays or losses caused by events outside reasonable control.
-            </Typography>
-          </Box>
-        </Stack>
+  return (
+    <Box sx={{ bgcolor: brand.bg }}>
+      <Box sx={{ py: { xs: 7, md: 10 }, background: `linear-gradient(135deg, ${brand.primary}14, ${brand.hover}10)`, borderBottom: `1px solid ${brand.borderSoft}` }}>
+        <Container maxWidth="md">
+          <Typography variant="h2" sx={{ color: brand.text, fontWeight: 700, textAlign: "center", fontSize: { xs: "2rem", sm: "2.75rem", md: "3.25rem" }, mb: 2 }}>
+            {termsPageContent.hero.title}
+          </Typography>
+          <Divider sx={{ width: 80, mx: "auto", mb: 2.5, height: 3, borderColor: "transparent", background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})` }} />
+          <Typography sx={{ color: brand.textMuted, textAlign: "center" }}>
+            Last updated: {termsPageContent.hero.updatedAt}
+          </Typography>
+        </Container>
+      </Box>
+      <Container maxWidth="md" sx={{ py: { xs: 5, md: 7 } }}>
+        <Grid container spacing={2.5}>
+          {termsPageContent.sections.map((section) => (
+            <Grid item xs={12} key={section.title}>
+              <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: brand.surface, border: `1px solid ${brand.borderSoft}`, boxShadow: brand.shadowCard }}>
+                <Typography variant="h6" sx={{ mb: 1, color: brand.text, fontWeight: 600 }}>{section.title}</Typography>
+                <Typography sx={{ color: brand.textMuted, lineHeight: 1.8 }}>{section.body}</Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
       </Container>
     </Box>
   );

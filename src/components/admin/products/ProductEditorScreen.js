@@ -1,8 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Snackbar } from "@mui/material";
+import { 
+  Alert, 
+  Snackbar, 
+  Box,
+  CircularProgress,
+  Fade,
+  IconButton,
+  useTheme,
+} from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
+import CloseIcon from "@mui/icons-material/Close";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
+import InfoIcon from "@mui/icons-material/Info";
 import { useRouter } from "next/navigation";
 
 import ProductEditorTab from "./ProductEditorTab";
@@ -21,6 +33,7 @@ import { categoriesApi, productsApi } from "@/lib/api";
 
 export default function ProductEditorScreen({ productId = "" }) {
   const router = useRouter();
+  const theme = useTheme();
   const isEditing = Boolean(productId);
 
   const [categories, setCategories] = useState([]);
@@ -337,37 +350,104 @@ export default function ProductEditorScreen({ productId = "" }) {
   };
 
   return (
-    <>
-      {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+    <Box>
+      {error ? (
+        <Fade in timeout={400}>
+          <Alert 
+            severity="error" 
+            icon={<ErrorIcon />}
+            sx={{ 
+              mb: { xs: 2, sm: 2.5, md: 3 },
+              borderRadius: { xs: 2, sm: 2.5 },
+              border: `1px solid ${theme.palette.error.light}`,
+              boxShadow: `0 4px 12px ${theme.palette.error.light}30`,
+              fontSize: { xs: "0.875rem", sm: "0.938rem" },
+              fontWeight: 500,
+              background: `linear-gradient(135deg, ${theme.palette.error.light}10, ${theme.palette.error.light}05)`,
+              transition: "all 0.3s ease",
+              "&:hover": {
+                boxShadow: `0 6px 16px ${theme.palette.error.light}40`,
+                transform: "translateY(-2px)",
+              },
+              "& .MuiAlert-icon": {
+                fontSize: { xs: 22, sm: 24 },
+              },
+            }}
+            onClose={() => setError("")}
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={() => setError("")}
+                sx={{
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    transform: "rotate(90deg)",
+                    backgroundColor: theme.palette.error.light + "20",
+                  },
+                }}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            }
+          >
+            {error}
+          </Alert>
+        </Fade>
+      ) : null}
 
       {loading ? (
-        <Alert severity="info">Loading product editor...</Alert>
+        <Fade in timeout={400}>
+          <Alert 
+            severity="info"
+            icon={<CircularProgress size={20} thickness={4} />}
+            sx={{
+              mb: { xs: 2, sm: 2.5, md: 3 },
+              borderRadius: { xs: 2, sm: 2.5 },
+              border: `1px solid ${theme.palette.info.light}`,
+              boxShadow: `0 4px 12px ${theme.palette.info.light}30`,
+              fontSize: { xs: "0.875rem", sm: "0.938rem" },
+              fontWeight: 500,
+              background: `linear-gradient(135deg, ${theme.palette.info.light}10, ${theme.palette.info.light}05)`,
+              "& .MuiAlert-icon": {
+                fontSize: { xs: 22, sm: 24 },
+              },
+            }}
+          >
+            Loading product editor...
+          </Alert>
+        </Fade>
       ) : (
-        <ProductEditorTab
-          form={form}
-          formErrors={formErrors}
-          categories={categories}
-          selectedCategoryValue={selectedCategoryValue}
-          totalStock={totalStock}
-          uploading={uploading}
-          dragImageId={dragImageId}
-          isEditing={isEditing}
-          onSubmit={handleSubmit}
-          onBackToList={() => router.push("/admin/products")}
-          onReset={handleReset}
-          onFieldChange={updateField}
-          onCategoryChange={handleCategoryChange}
-          onImageUpload={handleImageUpload}
-          onImageDragStart={setDragImageId}
-          onImageDrop={(fromId, toId) => {
-            moveImage(fromId, toId);
-            setDragImageId("");
-          }}
-          onImageRemove={removeImage}
-          onVariantChange={updateVariant}
-          onVariantAdd={addVariant}
-          onVariantRemove={removeVariant}
-        />
+        <Fade in timeout={400}>
+          <Box>
+            <ProductEditorTab
+              form={form}
+              formErrors={formErrors}
+              categories={categories}
+              selectedCategoryValue={selectedCategoryValue}
+              totalStock={totalStock}
+              uploading={uploading}
+              dragImageId={dragImageId}
+              isEditing={isEditing}
+              onSubmit={handleSubmit}
+              onBackToList={() => router.push("/admin/products")}
+              onReset={handleReset}
+              onFieldChange={updateField}
+              onCategoryChange={handleCategoryChange}
+              onImageUpload={handleImageUpload}
+              onImageDragStart={setDragImageId}
+              onImageDrop={(fromId, toId) => {
+                moveImage(fromId, toId);
+                setDragImageId("");
+              }}
+              onImageRemove={removeImage}
+              onVariantChange={updateVariant}
+              onVariantAdd={addVariant}
+              onVariantRemove={removeVariant}
+            />
+          </Box>
+        </Fade>
       )}
 
       <Snackbar
@@ -375,15 +455,77 @@ export default function ProductEditorScreen({ productId = "" }) {
         autoHideDuration={3500}
         onClose={() => setToast((prev) => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        TransitionComponent={Fade}
+        sx={{
+          top: { xs: 16, sm: 24 },
+          right: { xs: 16, sm: 24 },
+        }}
       >
         <MuiAlert
           severity={toast.severity}
           variant="filled"
+          icon={
+            toast.severity === "success" ? (
+              <CheckCircleIcon sx={{ fontSize: { xs: 22, sm: 24 } }} />
+            ) : toast.severity === "error" ? (
+              <ErrorIcon sx={{ fontSize: { xs: 22, sm: 24 } }} />
+            ) : (
+              <InfoIcon sx={{ fontSize: { xs: 22, sm: 24 } }} />
+            )
+          }
           onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+          sx={{
+            minWidth: { xs: 280, sm: 320, md: 360 },
+            borderRadius: { xs: 2, sm: 2.5 },
+            fontSize: { xs: "0.875rem", sm: "0.938rem" },
+            fontWeight: 600,
+            boxShadow: theme.palette.brand?.shadowCardStrong || "0 12px 28px rgba(0,0,0,0.25)",
+            backdropFilter: "blur(10px)",
+            py: { xs: 1, sm: 1.5 },
+            px: { xs: 1.5, sm: 2 },
+            alignItems: "center",
+            transition: "all 0.3s ease",
+            "&:hover": {
+              transform: "translateY(-2px)",
+              boxShadow: theme.palette.brand?.shadowCardStrong || "0 14px 32px rgba(0,0,0,0.3)",
+            },
+            "& .MuiAlert-icon": {
+              fontSize: { xs: 22, sm: 24 },
+              mr: { xs: 1, sm: 1.5 },
+            },
+            "& .MuiAlert-message": {
+              fontSize: { xs: "0.875rem", sm: "0.938rem" },
+              fontWeight: 600,
+              py: 0.5,
+            },
+            "& .MuiAlert-action": {
+              ml: { xs: 1, sm: 2 },
+              mr: -0.5,
+              "& .MuiIconButton-root": {
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  transform: "rotate(90deg)",
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                },
+              },
+            },
+            ...(toast.severity === "success" && {
+              background: `linear-gradient(135deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
+              border: `1px solid ${theme.palette.success.light}`,
+            }),
+            ...(toast.severity === "error" && {
+              background: `linear-gradient(135deg, ${theme.palette.error.main}, ${theme.palette.error.dark})`,
+              border: `1px solid ${theme.palette.error.light}`,
+            }),
+            ...(toast.severity === "info" && {
+              background: `linear-gradient(135deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`,
+              border: `1px solid ${theme.palette.info.light}`,
+            }),
+          }}
         >
           {toast.message}
         </MuiAlert>
       </Snackbar>
-    </>
+    </Box>
   );
 }

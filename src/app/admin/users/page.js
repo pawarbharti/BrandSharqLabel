@@ -65,19 +65,6 @@ export default function AdminUsersPage() {
     }
   };
 
-  const resetPassword = async (userId) => {
-    try {
-      setError("");
-      await adminApi.updateUser(userId, {
-        action: "reset_password",
-        newPassword: "password123",
-      });
-      setSuccess("Password reset to password123");
-    } catch (err) {
-      setError(err.message || "Failed to reset password");
-    }
-  };
-
   return (
     <AdminGuard>
       <AdminShell title="Manage Users">
@@ -201,12 +188,6 @@ export default function AdminUsersPage() {
                           {user.isBlocked ? "Unblock" : "Block"}
                         </Button>
 
-                        {/* <Button
-                          size="small"
-                          onClick={() => resetPassword(id)}
-                        >
-                          Reset Password
-                        </Button> */}
                       </Stack>
                     </TableCell>
                   </TableRow>

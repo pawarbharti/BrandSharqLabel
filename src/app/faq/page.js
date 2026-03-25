@@ -1,79 +1,88 @@
+"use client";
+
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Box,
   Container,
+  Divider,
   Typography,
+  useTheme,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
-const FAQ_ITEMS = [
-  {
-    question: "How long does delivery take?",
-    answer:
-      "Most orders are processed in 1-2 business days and delivered within 3-7 business days, depending on your location.",
-  },
-  {
-    question: "Do you offer free shipping?",
-    answer:
-      "Shipping charges are calculated at checkout. Free shipping may apply during select promotions or on qualifying order values.",
-  },
-  {
-    question: "Can I return or exchange a product?",
-    answer:
-      "Yes. Eligible items can be returned or exchanged within 7 days of delivery if they are unused, unwashed, and in original condition with tags.",
-  },
-  {
-    question: "When will I receive my refund?",
-    answer:
-      "After your return is quality-checked, refunds are typically processed within 5-7 business days to the original payment method.",
-  },
-  {
-    question: "How do I track my order?",
-    answer:
-      "You can track your order from the Track Order page using your order ID, or from your account order history after login.",
-  },
-  {
-    question: "What if I receive a damaged or wrong item?",
-    answer:
-      "Contact us immediately at info@sharqlabel.com with your order ID and product images. Our support team will resolve it quickly.",
-  },
-  {
-    question: "How can I contact support?",
-    answer:
-      "You can reach us at info@sharqlabel.com or call 7678294158 during support hours.",
-  },
-];
+import { faqPageContent } from "@/workflow/pages/faq";
 
 export default function FAQPage() {
-  return (
-    <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "background.default", minHeight: "70vh" }}>
-      <Container maxWidth="md">
-        <Typography variant="h3" sx={{ mb: 1 }}>
-          Frequently Asked Questions
-        </Typography>
-        <Typography sx={{ opacity: 0.8, mb: 4 }}>
-          Quick answers for orders, shipping, returns, and support.
-        </Typography>
+  const theme = useTheme();
+  const brand = theme.palette.brand;
 
-        {FAQ_ITEMS.map((item) => (
+  return (
+    <Box sx={{ bgcolor: brand.bg }}>
+      <Box
+        sx={{
+          py: { xs: 7, md: 10 },
+          background: `linear-gradient(135deg, ${brand.primary}14, ${brand.hover}10)`,
+          borderBottom: `1px solid ${brand.borderSoft}`,
+        }}
+      >
+        <Container maxWidth="md">
+          <Typography
+            variant="h2"
+            sx={{
+              color: brand.text,
+              fontWeight: 700,
+              textAlign: "center",
+              letterSpacing: { xs: 1.5, md: 3 },
+              fontSize: { xs: "2rem", sm: "2.75rem", md: "3.25rem" },
+              mb: 2,
+            }}
+          >
+            {faqPageContent.hero.title}
+          </Typography>
+          <Divider
+            sx={{
+              width: 80,
+              mx: "auto",
+              mb: 3,
+              height: 3,
+              borderColor: "transparent",
+              background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})`,
+            }}
+          />
+          <Typography sx={{ color: brand.textMuted, textAlign: "center", lineHeight: 1.8 }}>
+            {faqPageContent.hero.description}
+          </Typography>
+        </Container>
+      </Box>
+
+      <Container maxWidth="md" sx={{ py: { xs: 5, md: 7 } }}>
+        {faqPageContent.items.map((item) => (
           <Accordion
             key={item.question}
             disableGutters
+            elevation={0}
             sx={{
-              mb: 1.25,
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: "10px !important",
+              mb: 1.5,
+              borderRadius: "18px !important",
+              bgcolor: brand.surface,
+              border: `1px solid ${brand.borderSoft}`,
+              boxShadow: brand.shadowCard,
               "&:before": { display: "none" },
             }}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography sx={{ fontWeight: 600 }}>{item.question}</Typography>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: brand.primary }} />}
+              sx={{ px: { xs: 2, md: 2.5 }, py: 0.5 }}
+            >
+              <Typography sx={{ fontWeight: 600, color: brand.text }}>
+                {item.question}
+              </Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Typography sx={{ opacity: 0.82 }}>{item.answer}</Typography>
+            <AccordionDetails sx={{ px: { xs: 2, md: 2.5 }, pb: 2.5 }}>
+              <Typography sx={{ color: brand.textMuted, lineHeight: 1.8 }}>
+                {item.answer}
+              </Typography>
             </AccordionDetails>
           </Accordion>
         ))}

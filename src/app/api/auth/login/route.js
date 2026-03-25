@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSession, loginUser, sanitizeUser } from "@/lib/auth";
+import { createSession, loginUser, sanitizeUser, setSessionCookie } from "@/lib/auth";
 
 export async function POST(req) {
   try {
@@ -10,12 +10,11 @@ export async function POST(req) {
 
     const user = loginUser({ email, password });
     const token = createSession(user.id);
-
-    return NextResponse.json({ user: sanitizeUser(user), token });
+    const response = NextResponse.json({ user: sanitizeUser(user) });
+    return setSessionCookie(response, token);
   } catch (err) {
-    return NextResponse.json(
-      { error: err.message || "Invalid request" },
-      { status: 400 }
-    );
+    const message = err.message || "Invalid request";
+    const status = message === "Invalid email or password" || message.includes("verify your email") ? 401 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

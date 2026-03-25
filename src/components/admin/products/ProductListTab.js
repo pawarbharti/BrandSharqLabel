@@ -25,6 +25,9 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  useTheme,
+  useMediaQuery,
+  Fade,
 } from "@mui/material";
 
 import SearchIcon from "@mui/icons-material/Search";
@@ -32,6 +35,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import WarningIcon from "@mui/icons-material/Warning";
+import AddIcon from "@mui/icons-material/Add";
+import FilterListIcon from "@mui/icons-material/FilterList";
 
 import { COLLECTION_OPTIONS, formatCurrency } from "./productFormUtils";
 
@@ -48,6 +53,9 @@ export default function ProductListTab({
   onEditProduct,
   onDeleteProduct,
 }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const gridRef = useRef(null);
 
   const [deleteId, setDeleteId] = useState(null);
@@ -67,18 +75,46 @@ export default function ProductListTab({
         filter: false,
         cellRenderer: ({ data }) =>
           data?.images?.[0] ? (
-            <img
-              src={data.images[0]}
-              alt={data?.name}
-              style={{
-                width: 44,
-                height: 44,
-                objectFit: "cover",
-                borderRadius: 8,
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 2,
+                overflow: "hidden",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  transform: "scale(1.1)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.18)",
+                },
               }}
-            />
+            >
+              <img
+                src={data.images[0]}
+                alt={data?.name}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            </Box>
           ) : (
-            "-"
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 2,
+                backgroundColor: theme.palette.action.hover,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "0.75rem",
+                color: theme.palette.text.disabled,
+              }}
+            >
+              -
+            </Box>
           ),
       },
 
@@ -88,7 +124,15 @@ export default function ProductListTab({
         flex: 1.5,
         minWidth: 180,
         cellRenderer: ({ value }) => (
-          <Typography sx={{ fontWeight: 600 }}>{value}</Typography>
+          <Typography 
+            sx={{ 
+              fontWeight: 600,
+              fontSize: { xs: "0.875rem", sm: "0.938rem" },
+              color: theme.palette.text.primary,
+            }}
+          >
+            {value}
+          </Typography>
         ),
       },
 
@@ -96,12 +140,35 @@ export default function ProductListTab({
         field: "category",
         headerName: "Category",
         width: 140,
+        cellRenderer: ({ value }) => (
+          <Chip
+            label={value || "-"}
+            size="small"
+            sx={{
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              backgroundColor: theme.palette.primary.light + "20",
+              color: theme.palette.primary.main,
+            }}
+          />
+        ),
       },
 
       {
         field: "collection",
         headerName: "Collection",
         width: 140,
+        cellRenderer: ({ value }) => (
+          <Chip
+            label={value || "-"}
+            size="small"
+            variant="outlined"
+            sx={{
+              fontSize: "0.75rem",
+              fontWeight: 500,
+            }}
+          />
+        ),
       },
 
       {
@@ -109,6 +176,11 @@ export default function ProductListTab({
         headerName: "Price",
         width: 120,
         valueFormatter: (p) => formatCurrency(p.value || 0),
+        cellRenderer: ({ value }) => (
+          <Typography sx={{ fontWeight: 600, color: theme.palette.success.main }}>
+            {formatCurrency(value || 0)}
+          </Typography>
+        ),
       },
 
       {
@@ -116,6 +188,15 @@ export default function ProductListTab({
         headerName: "MRP",
         width: 120,
         valueFormatter: (p) => formatCurrency(p.value || 0),
+        cellRenderer: ({ value }) => (
+          <Typography sx={{ 
+            textDecoration: "line-through", 
+            opacity: 0.6,
+            fontSize: "0.875rem",
+          }}>
+            {formatCurrency(value || 0)}
+          </Typography>
+        ),
       },
 
       {
@@ -125,13 +206,25 @@ export default function ProductListTab({
         cellRenderer: ({ value }) =>
           value <= 5 ? (
             <Chip
-              icon={<WarningIcon />}
+              icon={<WarningIcon sx={{ fontSize: 16 }} />}
               label={value}
               color="error"
               size="small"
+              sx={{
+                fontWeight: 600,
+                fontSize: "0.75rem",
+              }}
             />
           ) : (
-            <Chip label={value} color="success" size="small" />
+            <Chip 
+              label={value} 
+              color="success" 
+              size="small"
+              sx={{
+                fontWeight: 600,
+                fontSize: "0.75rem",
+              }}
+            />
           ),
       },
 
@@ -140,6 +233,11 @@ export default function ProductListTab({
         width: 120,
         valueGetter: ({ data }) =>
           data?.sizes?.length ? data.sizes.join(", ") : "-",
+        cellRenderer: ({ value }) => (
+          <Typography sx={{ fontSize: "0.813rem", color: theme.palette.text.secondary }}>
+            {value}
+          </Typography>
+        ),
       },
 
       {
@@ -147,6 +245,11 @@ export default function ProductListTab({
         width: 140,
         valueGetter: ({ data }) =>
           data?.colors?.length ? data.colors.join(", ") : "-",
+        cellRenderer: ({ value }) => (
+          <Typography sx={{ fontSize: "0.813rem", color: theme.palette.text.secondary }}>
+            {value}
+          </Typography>
+        ),
       },
 
       {
@@ -155,12 +258,36 @@ export default function ProductListTab({
         width: 110,
         valueFormatter: (p) =>
           p.value ? `${p.value} (${p.data.reviewCount})` : "-",
+        cellRenderer: ({ data }) => 
+          data.rating ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Typography sx={{ fontWeight: 600, color: theme.palette.warning.main }}>
+                ⭐ {data.rating}
+              </Typography>
+              <Typography sx={{ fontSize: "0.75rem", opacity: 0.6 }}>
+                ({data.reviewCount})
+              </Typography>
+            </Box>
+          ) : (
+            <Typography sx={{ opacity: 0.5 }}>-</Typography>
+          ),
       },
 
       {
         field: "viewCount",
         headerName: "Views",
         width: 110,
+        cellRenderer: ({ value }) => (
+          <Chip
+            label={value || 0}
+            size="small"
+            variant="outlined"
+            sx={{
+              fontSize: "0.75rem",
+              fontWeight: 500,
+            }}
+          />
+        ),
       },
 
       {
@@ -173,32 +300,52 @@ export default function ProductListTab({
 
           return (
             <Stack direction="row" spacing={0.5}>
-              <Tooltip title="View">
+              <Tooltip title="View" arrow>
                 <IconButton
                   size="small"
                   component="a"
                   href={`/shop/${params.data?.slug || id}`}
                   target="_blank"
+                  sx={{
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      backgroundColor: theme.palette.info.light + "20",
+                      color: theme.palette.info.main,
+                      transform: "scale(1.1)",
+                    },
+                  }}
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
 
-              {/* <Tooltip title="Edit">
+              {/* <Tooltip title="Edit" arrow>
                 <IconButton
                   size="small"
                   color="primary"
                   onClick={() => onEditProduct(params.data)}
+                  sx={{
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      transform: "scale(1.1)",
+                    },
+                  }}
                 >
                   <EditIcon fontSize="small" />
                 </IconButton>
               </Tooltip> */}
 
-              <Tooltip title="Delete">
+              <Tooltip title="Delete" arrow>
                 <IconButton
                   size="small"
                   color="error"
                   onClick={() => setDeleteId(id)}
+                  sx={{
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      transform: "scale(1.1)",
+                    },
+                  }}
                 >
                   <DeleteIcon fontSize="small" />
                 </IconButton>
@@ -208,38 +355,112 @@ export default function ProductListTab({
         },
       },
     ],
-    [onEditProduct],
+    [onEditProduct, theme],
   );
 
   return (
-    <Paper sx={{ p: 3 }}>
+    <Paper 
+      elevation={0}
+      sx={{ 
+        p: { xs: 2, sm: 2.5, md: 3 },
+        borderRadius: { xs: 2.5, sm: 3 },
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+        transition: "all 0.3s ease",
+        "&:hover": {
+          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+        },
+      }}
+    >
       {/* HEADER */}
       <Stack
-        direction={{ xs: "column", md: "row" }}
+        direction={{ xs: "column", sm: "column", md: "row" }}
         justifyContent="space-between"
-        spacing={2}
-        sx={{ mb: 3 }}
+        alignItems={{ xs: "stretch", md: "flex-start" }}
+        spacing={{ xs: 2, sm: 2.5, md: 2 }}
+        sx={{ mb: { xs: 2.5, sm: 3 } }}
       >
         <Box>
-          <Typography variant="h6">Products</Typography>
-          <Typography sx={{ opacity: 0.7 }}>
-            Manage your product catalog
+          <Typography 
+            variant="h6"
+            sx={{
+              fontSize: { xs: "1.1rem", sm: "1.25rem" },
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              mb: 0.5,
+              "&::before": {
+                content: '""',
+                width: 4,
+                height: 24,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                borderRadius: 2,
+              },
+            }}
+          >
+            Products
+          </Typography>
+          <Typography 
+            sx={{ 
+              opacity: 0.7,
+              fontSize: { xs: "0.813rem", sm: "0.875rem" },
+              pl: { xs: 0, sm: 2 },
+            }}
+          >
+            Manage your product catalog ({products.length} items)
           </Typography>
         </Box>
 
-        <Stack direction="row" spacing={1}>
-          <Button variant="contained" onClick={onAddProduct}>
+        <Stack 
+          direction={{ xs: "column", sm: "row" }} 
+          spacing={{ xs: 1.5, sm: 1 }}
+          sx={{ width: { xs: "100%", sm: "auto" } }}
+        >
+          <Button 
+            variant="contained" 
+            onClick={onAddProduct}
+            startIcon={<AddIcon />}
+            sx={{
+              borderRadius: { xs: 2, sm: 2.5 },
+              py: { xs: 1, sm: 1.2 },
+              px: { xs: 2, sm: 2.5 },
+              fontWeight: 600,
+              fontSize: { xs: "0.875rem", sm: "0.938rem" },
+              textTransform: "none",
+              boxShadow: theme.palette.brand?.shadowButton || "0 4px 12px rgba(0,0,0,0.15)",
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "translateY(-2px)",
+                boxShadow: theme.palette.brand?.shadowCardStrong || "0 6px 16px rgba(0,0,0,0.2)",
+              },
+            }}
+          >
             Add Product
           </Button>
 
-          <FormControl size="small" sx={{ minWidth: 160 }}>
+          <FormControl 
+            size="small" 
+            sx={{ 
+              minWidth: { xs: "100%", sm: 160 },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: { xs: 2, sm: 2.5 },
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  borderColor: theme.palette.primary.main,
+                },
+              },
+            }}
+          >
             <InputLabel>Category</InputLabel>
             <Select
               label="Category"
               value={categoryFilter}
               onChange={(e) => onCategoryFilterChange(e.target.value)}
+              sx={{ fontSize: { xs: "0.875rem", sm: "0.938rem" } }}
             >
-              <MenuItem value="">All</MenuItem>
+              <MenuItem value="">All Categories</MenuItem>
               {categories.map((c) => (
                 <MenuItem key={c._id || c.id} value={c.slug}>
                   {c.name}
@@ -248,14 +469,27 @@ export default function ProductListTab({
             </Select>
           </FormControl>
 
-          <FormControl size="small" sx={{ minWidth: 160 }}>
+          <FormControl 
+            size="small" 
+            sx={{ 
+              minWidth: { xs: "100%", sm: 160 },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: { xs: 2, sm: 2.5 },
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  borderColor: theme.palette.primary.main,
+                },
+              },
+            }}
+          >
             <InputLabel>Collection</InputLabel>
             <Select
               label="Collection"
               value={collectionFilter}
               onChange={(e) => onCollectionFilterChange(e.target.value)}
+              sx={{ fontSize: { xs: "0.875rem", sm: "0.938rem" } }}
             >
-              <MenuItem value="">All</MenuItem>
+              <MenuItem value="">All Collections</MenuItem>
               {COLLECTION_OPTIONS.map((c) => (
                 <MenuItem key={c} value={c}>
                   {c}
@@ -269,16 +503,32 @@ export default function ProductListTab({
       {/* SEARCH */}
       <TextField
         size="small"
-        placeholder="Search products..."
+        placeholder="Search products by name, category, collection..."
         onChange={(e) => gridRef.current?.api?.setQuickFilter(e.target.value)}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon />
+              <SearchIcon sx={{ color: theme.palette.text.secondary }} />
             </InputAdornment>
           ),
         }}
-        sx={{ mb: 2, maxWidth: 300 }}
+        sx={{ 
+          mb: { xs: 2, sm: 2.5 },
+          width: { xs: "100%", sm: "100%", md: 400 },
+          "& .MuiOutlinedInput-root": {
+            borderRadius: { xs: 2, sm: 2.5 },
+            backgroundColor: theme.palette.action.hover,
+            transition: "all 0.3s ease",
+            "&:hover": {
+              backgroundColor: theme.palette.background.paper,
+              borderColor: theme.palette.primary.main,
+            },
+            "&.Mui-focused": {
+              backgroundColor: theme.palette.background.paper,
+              boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`,
+            },
+          },
+        }}
       />
 
       {/* GRID */}
@@ -286,8 +536,8 @@ export default function ProductListTab({
         className="ag-theme-quartz"
         sx={{
           width: "100%",
-          height: 620,
-          borderRadius: 3,
+          height: { xs: 500, sm: 580, md: 620 },
+          borderRadius: { xs: 2, sm: 2.5 },
           overflow: "hidden",
 
           /* Grid sizing */
@@ -296,42 +546,61 @@ export default function ProductListTab({
           "--ag-font-size": "14px",
 
           /* Colors */
-          "--ag-border-color": "rgba(0,0,0,0.06)",
-          "--ag-header-background-color": "#f5f6f8",
-          "--ag-header-foreground-color": "#222",
+          "--ag-border-color": theme.palette.divider,
+          "--ag-header-background-color": theme.palette.action.hover,
+          "--ag-header-foreground-color": theme.palette.text.primary,
 
           /* Zebra rows */
-          "--ag-odd-row-background-color": "#ffffff",
-          "--ag-even-row-background-color": "#f9fafb",
+          "--ag-odd-row-background-color": theme.palette.background.paper,
+          "--ag-even-row-background-color": theme.palette.action.hover,
 
           /* Hover */
-          "--ag-row-hover-color": "rgba(25,118,210,0.06)",
+          "--ag-row-hover-color": `${theme.palette.primary.light}15`,
 
           /* Selection */
-          "--ag-selected-row-background-color": "rgba(25,118,210,0.12)",
+          "--ag-selected-row-background-color": `${theme.palette.primary.light}25`,
 
           /* Font */
-          "--ag-font-family": "Inter, Roboto, sans-serif",
+          "--ag-font-family": theme.typography.fontFamilyBody || "Inter, Roboto, sans-serif",
 
           /* Shadow */
-          boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+          border: `1px solid ${theme.palette.divider}`,
 
           /* Header style */
           "& .ag-header-cell-label": {
-            fontWeight: 600,
-            fontSize: "13px",
+            fontWeight: 700,
+            fontSize: { xs: "0.75rem", sm: "0.813rem" },
+            color: theme.palette.text.primary,
           },
 
           /* Row cells */
           "& .ag-cell": {
             display: "flex",
             alignItems: "center",
-            fontSize: "14px",
+            fontSize: { xs: "0.813rem", sm: "0.875rem" },
           },
 
           /* Remove harsh borders */
           "& .ag-row": {
-            borderBottom: "1px solid rgba(0,0,0,0.05)",
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            transition: "all 0.2s ease",
+          },
+
+          /* Scrollbar */
+          "& ::-webkit-scrollbar": {
+            width: "8px",
+            height: "8px",
+          },
+          "& ::-webkit-scrollbar-track": {
+            background: theme.palette.action.hover,
+          },
+          "& ::-webkit-scrollbar-thumb": {
+            background: theme.palette.primary.main,
+            borderRadius: "4px",
+            "&:hover": {
+              background: theme.palette.primary.dark,
+            },
           },
         }}
       >
@@ -356,20 +625,62 @@ export default function ProductListTab({
       </Box>
 
       {/* DELETE CONFIRMATION */}
-      <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Delete Product?</DialogTitle>
+      <Dialog 
+        open={Boolean(deleteId)} 
+        onClose={() => setDeleteId(null)}
+        TransitionComponent={Fade}
+        PaperProps={{
+          sx: {
+            borderRadius: { xs: 2.5, sm: 3 },
+            boxShadow: theme.palette.brand?.shadowCardStrong || "0 12px 28px rgba(0,0,0,0.15)",
+            minWidth: { xs: "90%", sm: 400 },
+          },
+        }}
+      >
+        <DialogTitle 
+          sx={{ 
+            fontSize: { xs: "1.1rem", sm: "1.25rem" },
+            fontWeight: 600,
+            pb: 1,
+          }}
+        >
+          Delete Product?
+        </DialogTitle>
 
         <DialogContent>
-          <Typography>
-            Are you sure you want to delete this product? This action cannot be
-            undone.
+          <Typography sx={{ fontSize: { xs: "0.875rem", sm: "0.938rem" }, color: theme.palette.text.secondary }}>
+            Are you sure you want to delete this product? This action cannot be undone.
           </Typography>
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Cancel</Button>
+        <DialogActions sx={{ p: { xs: 2, sm: 2.5 }, gap: 1 }}>
+          <Button 
+            onClick={() => setDeleteId(null)}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 600,
+              px: 3,
+            }}
+          >
+            Cancel
+          </Button>
 
-          <Button color="error" variant="contained" onClick={confirmDelete}>
+          <Button 
+            color="error" 
+            variant="contained" 
+            onClick={confirmDelete}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 600,
+              px: 3,
+              boxShadow: "0 4px 12px rgba(211, 47, 47, 0.3)",
+              "&:hover": {
+                boxShadow: "0 6px 16px rgba(211, 47, 47, 0.4)",
+              },
+            }}
+          >
             Delete
           </Button>
         </DialogActions>

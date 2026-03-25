@@ -3,31 +3,49 @@
 import Link from "next/link";
 import {
   Box,
-  Card,
-  CardActionArea,
   CardContent,
-  CardMedia,
   Chip,
   CircularProgress,
   Container,
   Divider,
   FormControl,
   Grid,
+  InputAdornment,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Stack,
   Typography,
+  useMediaQuery,
+  useTheme,
+  Fade,
 } from "@mui/material";
 import { useMemo, useState } from "react";
+import {
+  AutoAwesomeOutlined,
+  CheckCircleOutline,
+  FilterListOutlined,
+  FlashOnOutlined,
+  GridViewOutlined,
+  SearchOutlined,
+  TrendingUpOutlined,
+  TuneOutlined,
+} from "@mui/icons-material";
 import ProductCard from "@/components/product/ProductCard";
-import { AppButton } from "@/components/common";
+import { AppButton, AppInput } from "@/components/common";
 import { useProducts } from "@/hooks/useProducts";
+import { collectionPageContent } from "@/workflow/pages/collection";
 
 const getProductId = (product) =>
   product?._id || product?.id || product?.productId;
 const getName = (product) => product?.name || "Collection Piece";
 const getPrice = (product) => Number(product?.price || 0);
+const getCategory = (product) =>
+  String(product?.category || "uncategorized").toLowerCase();
+const getCollection = (product) =>
+  String(product?.collection || "general").toLowerCase();
+
 const extractSizes = (product) => {
   if (Array.isArray(product?.sizes)) {
     return product.sizes.map((size) => String(size).toUpperCase());
@@ -52,16 +70,29 @@ const priceMatch = (product, filter) => {
   return true;
 };
 
-const CRAFT_IMAGES = [
-  "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
-  "https://images.unsplash.com/photo-1523381210434-271e8be1f52b",
-  "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
-];
-
 export default function CollectionPage() {
+  const theme = useTheme();
+  const brand = theme.palette.brand;
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { products, loading, error } = useProducts();
+  const featureIconMap = {
+    inspiration: (
+      <AutoAwesomeOutlined sx={{ fontSize: 34, color: "inherit" }} />
+    ),
+    fabric: <CheckCircleOutline sx={{ fontSize: 34, color: "inherit" }} />,
+    mood: <FlashOnOutlined sx={{ fontSize: 34, color: "inherit" }} />,
+    vision: <TrendingUpOutlined sx={{ fontSize: 34, color: "inherit" }} />,
+  };
+  const badgeIconMap = {
+    statement: <AutoAwesomeOutlined sx={{ fontSize: 14 }} />,
+    bestSeller: <TrendingUpOutlined sx={{ fontSize: 14 }} />,
+    limited: <FlashOnOutlined sx={{ fontSize: 14 }} />,
+  };
+
+  const [searchQuery, setSearchQuery] = useState("");
   const [sizeFilter, setSizeFilter] = useState("all");
   const [priceFilter, setPriceFilter] = useState("all");
+  const [showFilters, setShowFilters] = useState(true);
 
   const sizeOptions = useMemo(() => {
     const allSizes = products.flatMap(extractSizes);
@@ -69,289 +100,867 @@ export default function CollectionPage() {
   }, [products]);
 
   const filteredCollection = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
     return products.filter((product) => {
       const sizes = extractSizes(product);
+      const matchesSearch =
+        !query ||
+        getName(product).toLowerCase().includes(query) ||
+        getCategory(product).includes(query) ||
+        getCollection(product).includes(query);
       const matchesSize =
         sizeFilter === "all" ||
         sizes.length === 0 ||
         sizes.includes(sizeFilter);
-      return matchesSize && priceMatch(product, priceFilter);
+
+      return matchesSearch && matchesSize && priceMatch(product, priceFilter);
     });
-  }, [products, sizeFilter, priceFilter]);
+  }, [products, searchQuery, sizeFilter, priceFilter]);
 
   const resetFilters = () => {
+    setSearchQuery("");
     setSizeFilter("all");
     setPriceFilter("all");
   };
 
+  const hasActiveFilters =
+    searchQuery.trim() !== "" || sizeFilter !== "all" || priceFilter !== "all";
+
+  const getBadgeForIndex = (index) => {
+    const badge = collectionPageContent.badges[index];
+    return badge
+      ? {
+          ...badge,
+          icon: badgeIconMap[badge.iconKey],
+        }
+      : null;
+  };
+
   return (
-    <Box sx={{ bgcolor: "background.default", color: "text.primary" }}>
+    <Box sx={{ bgcolor: brand.bg }}>
       <Box
         sx={{
-          minHeight: { xs: "65vh", md: "75vh" },
-          backgroundImage: (theme) =>
-            `linear-gradient(${theme.palette.brand.overlaySoft}, ${theme.palette.brand.overlayStrong}), url('/CollectionImage.jpeg')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          width: "100%",
+          height: { xs: "40vh", sm: "50vh", md: "60vh" },
+          position: "relative",
           display: "flex",
           alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `url('${collectionPageContent.hero.imageSrc}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              background: `linear-gradient(to bottom, ${brand.overlayStrong}, ${brand.overlaySoft})`,
+            },
+          }}
+        />
+
+        <Container sx={{ position: "relative", zIndex: 2 }}>
+          <Fade in timeout={1000}>
+            <Box
+              sx={{
+                maxWidth: "900px",
+                mx: "auto",
+                textAlign: "center",
+                px: { xs: 2, sm: 3, md: 4 },
+              }}
+            >
+              <Typography
+                variant="h2"
+                sx={{
+                  letterSpacing: { xs: 2, sm: 3, md: 4 },
+                  fontWeight: 700,
+                  mb: { xs: 1.5, sm: 2 },
+                  fontSize: { xs: "2rem", sm: "2.75rem", md: "3.5rem" },
+                  color: "#FFFFFF",
+                  textShadow: brand.heroTextShadow,
+                }}
+              >
+                {collectionPageContent.hero.title}
+              </Typography>
+
+              <Typography
+                sx={{
+                  letterSpacing: { xs: 3, sm: 4, md: 6 },
+                  color: brand.accent,
+                  fontWeight: 300,
+                  fontSize: { xs: "0.875rem", sm: "1rem", md: "1.125rem" },
+                  mb: { xs: 2, sm: 3 },
+                }}
+              >
+                {collectionPageContent.hero.eyebrow}
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontSize: { xs: "1rem", sm: "1.125rem", md: "1.25rem" },
+                  color: "rgba(255, 255, 255, 0.9)",
+                  lineHeight: 1.8,
+                  fontStyle: "italic",
+                }}
+              >
+                {collectionPageContent.hero.subtitle}
+              </Typography>
+            </Box>
+          </Fade>
+        </Container>
+      </Box>
+
+      <Box
+        sx={{
+          py: { xs: 4, sm: 5, md: 6 },
+          background: `linear-gradient(135deg, ${brand.primary}08, ${brand.hover}08)`,
+          borderBottom: `1px solid ${brand.borderSoft}`,
         }}
       >
         <Container>
-          <Box sx={{ maxWidth: 720 }}>
-            <Typography sx={{ letterSpacing: 4, color: "primary.main", mb: 1 }}>
-              WINTER 2026
-            </Typography>
-            <Typography
-              variant="h2"
-              sx={{
-                color: "background.paper",
-                fontWeight: 700,
-                lineHeight: 1.1,
-                mb: 2,
-              }}
-            >
-              Structured silhouettes. Muted dominance.
-            </Typography>
-            <Typography
-              sx={{
-                color: "background.paper",
-                opacity: 0.9,
-                mb: 4,
-                maxWidth: 620,
-              }}
-            >
-              A collection built on clean architecture, sharp restraint, and
-              quiet confidence. Every piece is designed to hold space without
-              asking for permission.
-            </Typography>
-            <AppButton component={Link} href="/shop" sx={{ px: 4 }}>
-              Shop Now
-            </AppButton>
-          </Box>
-        </Container>
-      </Box>
-
-           <Container sx={{ py: { xs: 6, md: 10 } }}>
-        <Box sx={{ textAlign: "center", mb: 5 }}>
-          <Typography variant="h4" sx={{ mb: 2, letterSpacing: 2 }}>
-            The Collection Story
-          </Typography>
-          <Typography sx={{ opacity: 0.8, maxWidth: 780, mx: "auto" }}>
-            A study in quiet confidence and precise structure. This collection
-            refines everyday dressing with controlled silhouettes, textured
-            fabrics, and a palette drawn from dusk cityscapes and architectural
-            shadows.
-          </Typography>
-        </Box>
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={3}>
-            <Card sx={{ height: "100%" }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  Inspiration
-                </Typography>
-                <Typography sx={{ opacity: 0.8 }}>
-                  Evening skylines, sculpted architecture, and the discipline of
-                  clean lines.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card sx={{ height: "100%" }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  Fabric
-                </Typography>
-                <Typography sx={{ opacity: 0.8 }}>
-                  Structured cottons, compact twills, and brushed blends chosen
-                  for weight and fall.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card sx={{ height: "100%" }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  Mood
-                </Typography>
-                <Typography sx={{ opacity: 0.8 }}>
-                  Composed, deliberate, and quietly assertive in every setting.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card sx={{ height: "100%" }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  Vision
-                </Typography>
-                <Typography sx={{ opacity: 0.8 }}>
-                  Build a lasting wardrobe through pieces that mature into
-                  personal signatures.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Container>
-
-      <Divider sx={{ width: "70%", mx: "auto" }} />
-
-      <Box sx={{ bgcolor: (theme) => theme.palette.brand.borderSoft, py: 6 }}>
-        <Container>
-          <Stack
-            direction={{ xs: "column", md: "row" }}
-            alignItems={{ xs: "stretch", md: "center" }}
-            justifyContent="space-between"
-            spacing={2}
-            sx={{ mb: 3 }}
+          <Typography
+            variant="h5"
+            sx={{
+              textAlign: "center",
+              maxWidth: "850px",
+              mx: "auto",
+              fontStyle: "italic",
+              color: brand.text,
+              lineHeight: 1.8,
+              fontSize: { xs: "1.125rem", sm: "1.25rem", md: "1.5rem" },
+              fontWeight: 300,
+            }}
           >
-            <Box>
-              <Typography variant="h4" sx={{ mb: 1 }}>
-                Collection Pieces
-              </Typography>
-              <Typography sx={{ opacity: 0.75 }}>
-                Showing all products in the collection.
-              </Typography>
-            </Box>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-              <FormControl size="small" sx={{ minWidth: 140 }}>
-                <InputLabel>Size</InputLabel>
-                <Select
-                  label="Size"
-                  value={sizeFilter}
-                  onChange={(e) => setSizeFilter(e.target.value)}
-                >
-                  <MenuItem value="all">All Sizes</MenuItem>
-                  {sizeOptions.map((size) => (
-                    <MenuItem key={size} value={size}>
-                      {size}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl size="small" sx={{ minWidth: 170 }}>
-                <InputLabel>Price</InputLabel>
-                <Select
-                  label="Price"
-                  value={priceFilter}
-                  onChange={(e) => setPriceFilter(e.target.value)}
-                >
-                  <MenuItem value="all">All Prices</MenuItem>
-                  <MenuItem value="under-3000">Under Rs 3000</MenuItem>
-                  <MenuItem value="3000-5000">Rs 3000 - Rs 5000</MenuItem>
-                  <MenuItem value="above-5000">Above Rs 5000</MenuItem>
-                </Select>
-              </FormControl>
-
-              <AppButton variant="outlined" onClick={resetFilters}>
-                Reset
-              </AppButton>
-            </Stack>
-          </Stack>
-
-          {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-              <CircularProgress />
-            </Box>
-          ) : error ? (
-            <Typography sx={{ textAlign: "center", opacity: 0.8 }}>{error}</Typography>
-          ) : (
-            <Grid container spacing={3}>
-              {filteredCollection.map((product, index) => (
-                <Grid item xs={12} sm={6} md={3} key={getProductId(product)}>
-                  <Box sx={{ mb: 1 }}>
-                    {index === 0 ? (
-                      <Chip
-                        size="small"
-                        color="secondary"
-                        label="Statement Piece"
-                      />
-                    ) : index === 1 ? (
-                      <Chip
-                        size="small"
-                        color="secondary"
-                        label="Best Seller"
-                      />
-                    ) : index === 2 ? (
-                      <Chip
-                        size="small"
-                        color="secondary"
-                        label="Limited Piece"
-                      />
-                    ) : null}
-                  </Box>
-                  <ProductCard
-                    product={product}
-                    hideWishlist
-                    hideQuickAdd
-                    soldOutLabel="Out of Stock"
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
+            {collectionPageContent.hero.quote}
+          </Typography>
         </Container>
       </Box>
 
-      <Box sx={{ bgcolor: "background.default", py: { xs: 6, md: 8 } }}>
-        <Container>
-          <Typography variant="h4" sx={{ mb: 1 }}>
-            Behind The Craft
-          </Typography>
-          <Typography sx={{ opacity: 0.78, mb: 4 }}>
-            Material precision, technical stitching, and finishing discipline.
-          </Typography>
-          <Grid container spacing={3} wrap="nowrap">
-            {CRAFT_IMAGES.map((image, index) => (
-              <Grid item xs={4} key={image}>
-                <Card>
-                  <CardMedia
-                    component="img"
-                    image={image}
-                    alt={`Craft detail ${index + 1}`}
-                    sx={{ height: 260, objectFit: "cover" }}
-                  />
-                  <CardContent>
-                    <Typography variant="h6" sx={{ mb: 0.5 }}>
-                      {index === 0
-                        ? "Fabric Close-Up"
-                        : index === 1
-                          ? "Tailoring Line"
-                          : "Stitch Precision"}
-                    </Typography>
-                    <Typography sx={{ opacity: 0.75 }}>
-                      {index === 0
-                        ? "Dense texture chosen for structure."
-                        : index === 1
-                          ? "Engineered seams built for sharp silhouette."
-                          : "Clean finishing for a refined final expression."}
-                    </Typography>
-                  </CardContent>
-                </Card>
+      <Box
+        sx={{
+          py: { xs: 6, md: 10 },
+          background: `linear-gradient(to bottom, ${brand.bg}, ${brand.surface})`,
+        }}
+      >
+        <Container maxWidth="xl">
+          <Box sx={{ textAlign: "center", mb: { xs: 5, md: 6 } }}>
+            <Typography
+              variant="h4"
+              sx={{
+                mb: 2,
+                letterSpacing: { xs: 2, md: 3 },
+                fontWeight: 600,
+                color: brand.text,
+                fontSize: { xs: "1.75rem", sm: "2rem", md: "2.5rem" },
+              }}
+            >
+              {collectionPageContent.hero.storyTitle}
+            </Typography>
+            <Divider
+              sx={{
+                width: { xs: "60px", sm: "80px" },
+                height: "3px",
+                mx: "auto",
+                mb: 3,
+                background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})`,
+                borderRadius: "3px",
+              }}
+            />
+            <Typography
+              sx={{
+                color: brand.textMuted,
+                maxWidth: 780,
+                mx: "auto",
+                fontSize: { xs: "1rem", sm: "1.0625rem", md: "1.125rem" },
+                lineHeight: 1.8,
+              }}
+            >
+              {collectionPageContent.hero.storyDescription}
+            </Typography>
+          </Box>
+
+          <Grid container spacing={{ xs: 2, sm: 3 }}>
+            {collectionPageContent.features.map((feature, idx) => (
+              <Grid item xs={12} md={6} key={idx}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    height: "100%",
+                    p: { xs: 3, sm: 3.5 },
+                    bgcolor: brand.surface,
+                    border: `1px solid ${brand.borderSoft}`,
+                    borderRadius: 3,
+                    boxShadow: brand.shadowCard,
+                    transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
+                    "&:hover": {
+                      transform: "translateY(-8px)",
+                      boxShadow: brand.shadowCardStrong,
+                      borderColor: brand.border,
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 2,
+                      width: 58,
+                      height: 58,
+                      borderRadius: "18px",
+                      color: brand.primary,
+                      background: `linear-gradient(135deg, ${brand.primary}12, ${brand.hover}14)`,
+                    }}
+                  >
+                    {featureIconMap[feature.iconKey]}
+                  </Box>
+
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      mb: 1.5,
+                      fontWeight: 600,
+                      color: brand.text,
+                      fontSize: { xs: "1.125rem", sm: "1.25rem" },
+
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {feature.title}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      color: brand.textMuted,
+                      fontSize: { xs: "0.9375rem", sm: "1rem" },
+                      lineHeight: 1.7,
+
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {feature.description}
+                  </Typography>
+                </Paper>
               </Grid>
             ))}
           </Grid>
         </Container>
       </Box>
 
-      {/* <Container sx={{ py: { xs: 7, md: 10 }, textAlign: "center" }}>
-        <Typography variant="h3" sx={{ mb: 1.5, letterSpacing: 1 }}>
-          Discover Your Identity
-        </Typography>
-        <Typography sx={{ maxWidth: 760, mx: "auto", opacity: 0.78, mb: 3 }}>
-          Move beyond trends. Build a wardrobe that speaks before you do.
-        </Typography>
-        <AppButton component={Link} href="/shop" sx={{ px: 4 }}>
-          Explore Full Collection
-        </AppButton>
-      </Container> */}
+      <Box
+        sx={{
+          bgcolor: brand.bg,
+          py: { xs: 4, md: 6 },
+          minHeight: "60vh",
+        }}
+      >
+        <Container maxWidth="xl">
+          <Box sx={{ textAlign: "center", mb: { xs: 4, md: 5 } }}>
+            <Typography
+              variant="h4"
+              sx={{
+                mb: 2,
+                letterSpacing: { xs: 2, md: 3 },
+                fontWeight: 600,
+                fontSize: { xs: "1.75rem", sm: "2rem", md: "2.5rem" },
+                color: brand.text,
+              }}
+            >
+              {collectionPageContent.hero.productsTitle}
+            </Typography>
+            <Divider
+              sx={{
+                width: { xs: "60px", sm: "80px" },
+                height: "3px",
+                mx: "auto",
+                background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})`,
+                borderRadius: "3px",
+              }}
+            />
+          </Box>
+
+          <Paper
+            elevation={0}
+            sx={{
+              mb: 4,
+              p: { xs: 2, sm: 3 },
+              border: `1px solid ${brand.borderSoft}`,
+              bgcolor: brand.surface,
+              borderRadius: 3,
+              boxShadow: brand.shadowCard,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 3,
+                gap: 2,
+              }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center">
+                <TuneOutlined sx={{ color: brand.primary, fontSize: 24 }} />
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    color: brand.text,
+                    fontSize: { xs: "1rem", sm: "1.25rem" },
+                  }}
+                >
+                  {collectionPageContent.filters.title}
+                </Typography>
+                {hasActiveFilters && (
+                  <Chip
+                    label={collectionPageContent.filters.activeLabel}
+                    size="small"
+                    color="primary"
+                    sx={{ ml: 1 }}
+                  />
+                )}
+              </Stack>
+
+              {isMobile && (
+                <AppButton
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setShowFilters(!showFilters)}
+                  startIcon={<FilterListOutlined />}
+                  sx={{ fontSize: "0.875rem" }}
+                >
+                  {showFilters
+                    ? collectionPageContent.filters.toggleLabels.hide
+                    : collectionPageContent.filters.toggleLabels.show}
+                </AppButton>
+              )}
+            </Box>
+
+            {(!isMobile || showFilters) && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gap: { xs: 2, sm: 2.5 },
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(3, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                }}
+              >
+                <Box sx={{ gridColumn: { xs: "1 / -1", lg: "span 2" } }}>
+                  <AppInput
+                    label={collectionPageContent.filters.searchLabel}
+                    placeholder={
+                      collectionPageContent.filters.searchPlaceholder
+                    }
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchOutlined sx={{ color: brand.primary }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    fullWidth
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                        backgroundColor:
+                          theme.palette.mode === "dark"
+                            ? brand.bg
+                            : "transparent",
+                      },
+                    }}
+                  />
+                </Box>
+
+                <FormControl fullWidth>
+                  <InputLabel>
+                    {collectionPageContent.filters.sizeLabel}
+                  </InputLabel>
+                  <Select
+                    label={collectionPageContent.filters.sizeLabel}
+                    value={sizeFilter}
+                    onChange={(e) => setSizeFilter(e.target.value)}
+                    sx={{
+                      borderRadius: 2,
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: brand.border,
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: brand.primary,
+                      },
+                    }}
+                  >
+                    <MenuItem value="all">
+                      {collectionPageContent.filters.allSizesLabel}
+                    </MenuItem>
+                    {sizeOptions.map((size) => (
+                      <MenuItem key={size} value={size}>
+                        {size}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth>
+                  <InputLabel>
+                    {collectionPageContent.filters.priceLabel}
+                  </InputLabel>
+                  <Select
+                    label={collectionPageContent.filters.priceLabel}
+                    value={priceFilter}
+                    onChange={(e) => setPriceFilter(e.target.value)}
+                    sx={{
+                      borderRadius: 2,
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: brand.border,
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: brand.primary,
+                      },
+                    }}
+                  >
+                    {collectionPageContent.filters.priceOptions.map(
+                      (option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      )
+                    )}
+                  </Select>
+                </FormControl>
+
+                <AppButton
+                  variant="outlined"
+                  onClick={resetFilters}
+                  disabled={!hasActiveFilters}
+                  fullWidth
+                  sx={{
+                    borderRadius: 2,
+                    borderColor: brand.primary,
+                    color: brand.primary,
+                    "&:hover": {
+                      borderColor: brand.hover,
+                      backgroundColor: brand.borderSoft,
+                    },
+                    "&.Mui-disabled": {
+                      borderColor: brand.borderSoft,
+                      color: brand.textMuted,
+                    },
+                  }}
+                >
+                  {collectionPageContent.filters.resetLabel}
+                </AppButton>
+              </Box>
+            )}
+
+            {hasActiveFilters && (
+              <Box sx={{ mt: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
+                {searchQuery.trim() && (
+                  <Chip
+                    label={`Search: ${searchQuery.trim()}`}
+                    onDelete={() => setSearchQuery("")}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                  />
+                )}
+                {sizeFilter !== "all" && (
+                  <Chip
+                    label={`Size: ${sizeFilter}`}
+                    onDelete={() => setSizeFilter("all")}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                  />
+                )}
+                {priceFilter !== "all" && (
+                  <Chip
+                    label={
+                      priceFilter === "under-3000"
+                        ? "Price: Under Rs 3,000"
+                        : priceFilter === "3000-5000"
+                          ? "Price: Rs 3,000 - Rs 5,000"
+                          : "Price: Above Rs 5,000"
+                    }
+                    onDelete={() => setPriceFilter("all")}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                  />
+                )}
+              </Box>
+            )}
+          </Paper>
+
+          <Box
+            sx={{
+              mb: 3,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 2,
+              px: 1,
+            }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center">
+              <GridViewOutlined sx={{ color: brand.primary, fontSize: 20 }} />
+              <Typography
+                sx={{
+                  color: brand.textMuted,
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                  fontWeight: 500,
+                }}
+              >
+                Showing{" "}
+                <Box
+                  component="span"
+                  sx={{ color: brand.primary, fontWeight: 600 }}
+                >
+                  {filteredCollection.length}
+                </Box>{" "}
+                {collectionPageContent.filters.curatedPiecesLabel}
+              </Typography>
+            </Stack>
+
+            <Chip
+              label={
+                hasActiveFilters
+                  ? collectionPageContent.filters.filteredViewLabel
+                  : collectionPageContent.filters.allPiecesLabel
+              }
+              variant="outlined"
+              sx={{
+                borderColor: brand.primary,
+                color: brand.primary,
+                fontWeight: 600,
+                fontSize: "0.875rem",
+              }}
+            />
+          </Box>
+
+          {loading ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                py: 10,
+                gap: 2,
+              }}
+            >
+              <CircularProgress size={50} sx={{ color: brand.primary }} />
+              <Typography sx={{ color: brand.textMuted, fontSize: "1rem" }}>
+                {collectionPageContent.states.loading}
+              </Typography>
+            </Box>
+          ) : error ? (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 4,
+                textAlign: "center",
+                bgcolor: brand.surface,
+                border: `1px solid ${brand.borderSoft}`,
+                borderRadius: 3,
+              }}
+            >
+              <Typography variant="h6" sx={{ color: brand.error, mb: 1 }}>
+                {collectionPageContent.states.errorTitle}
+              </Typography>
+              <Typography sx={{ color: brand.textMuted }}>{error}</Typography>
+            </Paper>
+          ) : filteredCollection.length === 0 ? (
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 4, sm: 6 },
+                textAlign: "center",
+                bgcolor: brand.surface,
+                border: `1px solid ${brand.borderSoft}`,
+                borderRadius: 3,
+                boxShadow: brand.shadowCard,
+              }}
+            >
+              <SearchOutlined
+                sx={{
+                  fontSize: 64,
+                  color: brand.primary,
+                  opacity: 0.3,
+                  mb: 2,
+                }}
+              />
+              <Typography
+                variant="h6"
+                sx={{
+                  mb: 1,
+                  color: brand.text,
+                  fontWeight: 600,
+                }}
+              >
+                {collectionPageContent.states.emptyTitle}
+              </Typography>
+              <Typography
+                sx={{
+                  mb: 3,
+                  color: brand.textMuted,
+                  fontSize: "1rem",
+                }}
+              >
+                {collectionPageContent.states.emptyDescription}
+              </Typography>
+              <AppButton
+                variant="contained"
+                onClick={resetFilters}
+                sx={{
+                  background: `linear-gradient(135deg, ${brand.gradientStart}, ${brand.gradientEnd})`,
+                  borderRadius: "24px",
+                  px: 4,
+                }}
+              >
+                {collectionPageContent.states.clearFiltersLabel}
+              </AppButton>
+            </Paper>
+          ) : (
+            <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+              {filteredCollection.map((product, index) => {
+                const badge = getBadgeForIndex(index);
+                return (
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    md={4}
+                    lg={3}
+                    key={getProductId(product)}
+                  >
+                    <Box>
+                      {badge && (
+                        <Chip
+                          icon={badge.icon}
+                          label={badge.label}
+                          color={badge.color}
+                          size="small"
+                          sx={{
+                            mb: 1,
+                            fontWeight: 600,
+                            fontSize: "0.75rem",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          }}
+                        />
+                      )}
+                      <ProductCard
+                        product={product}
+                        hideWishlist={false}
+                        hideQuickAdd={false}
+                        soldOutLabel={collectionPageContent.states.soldOutLabel}
+                      />
+                    </Box>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          )}
+        </Container>
+      </Box>
+
+      <Box
+        sx={{
+          bgcolor: brand.surface,
+          py: { xs: 6, md: 9 },
+          borderTop: `1px solid ${brand.borderSoft}`,
+        }}
+      >
+        <Container>
+          <Box sx={{ mb: { xs: 4, md: 5 } }}>
+            <Typography
+              variant="h4"
+              sx={{
+                mb: 2,
+                fontWeight: 600,
+                color: brand.text,
+                fontSize: { xs: "1.75rem", sm: "2rem", md: "2.5rem" },
+              }}
+            >
+              {collectionPageContent.craftSection.title}
+            </Typography>
+            <Typography
+              sx={{
+                color: brand.textMuted,
+                fontSize: { xs: "1rem", sm: "1.0625rem" },
+                maxWidth: 700,
+              }}
+            >
+              {collectionPageContent.craftSection.description}
+            </Typography>
+          </Box>
+
+          <Grid container spacing={{ xs: 2, sm: 3 }}>
+            {collectionPageContent.craftImages.map((craft, index) => (
+              <Grid item xs={12} md={4} key={index}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    overflow: "hidden",
+                    borderRadius: 3,
+                    border: `1px solid ${brand.borderSoft}`,
+                    bgcolor: brand.bg,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      transform: "translateY(-8px)",
+                      boxShadow: brand.shadowCardStrong,
+                      borderColor: brand.border,
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: "relative",
+                      overflow: "hidden",
+                      height: { xs: 220, sm: 260 },
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={craft.url}
+                      alt={craft.title}
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        transition: "transform 0.5s ease",
+                        "&:hover": {
+                          transform: "scale(1.1)",
+                        },
+                      }}
+                    />
+                  </Box>
+                  <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
+                      mb={1}
+                    >
+                      <CheckCircleOutline
+                        sx={{ color: brand.primary, fontSize: 20 }}
+                      />
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 600,
+                          color: brand.text,
+                          fontSize: { xs: "1.0625rem", sm: "1.125rem" },
+                        }}
+                      >
+                        {craft.title}
+                      </Typography>
+                    </Stack>
+                    <Typography
+                      sx={{
+                        color: brand.textMuted,
+                        fontSize: { xs: "0.9375rem", sm: "1rem" },
+                        lineHeight: 1.7,
+                      }}
+                    >
+                      {craft.description}
+                    </Typography>
+                  </CardContent>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${brand.primary}12, ${brand.hover}12)`,
+          py: { xs: 5, md: 7 },
+          textAlign: "center",
+          px: 3,
+          borderTop: `1px solid ${brand.borderSoft}`,
+        }}
+      >
+        <Container maxWidth="md">
+          <Typography
+            variant="h3"
+            sx={{
+              mb: 2,
+              letterSpacing: { xs: 2, md: 3 },
+              fontWeight: 600,
+              color: brand.text,
+              fontSize: { xs: "1.5rem", sm: "2rem", md: "2.25rem" },
+            }}
+          >
+            {collectionPageContent.cta.title}
+          </Typography>
+          <Divider
+            sx={{
+              width: { xs: "60px", sm: "80px" },
+              height: "3px",
+              mx: "auto",
+              mb: 3,
+              background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})`,
+              borderRadius: "3px",
+            }}
+          />
+          <Typography
+            sx={{
+              maxWidth: 760,
+              mx: "auto",
+              color: brand.textMuted,
+              fontSize: { xs: "1rem", sm: "1.0625rem", md: "1.125rem" },
+              lineHeight: 1.9,
+              mb: 4,
+            }}
+          >
+            {collectionPageContent.cta.description}
+          </Typography>
+          <AppButton
+            component={Link}
+            href={collectionPageContent.cta.buttonHref}
+            size="large"
+            sx={{
+              px: 5,
+              py: 1.75,
+              borderRadius: "30px",
+              fontSize: { xs: "1rem", sm: "1.125rem" },
+              fontWeight: 600,
+              background: `linear-gradient(135deg, ${brand.gradientStart}, ${brand.gradientEnd})`,
+              color: "#FFFFFF",
+              boxShadow: brand.shadowButton,
+              "&:hover": {
+                transform: "translateY(-3px)",
+                boxShadow: brand.shadowCardStrong,
+                background: `linear-gradient(135deg, ${brand.gradientEnd}, ${brand.gradientStart})`,
+              },
+            }}
+          >
+            {collectionPageContent.cta.buttonLabel}
+          </AppButton>
+        </Container>
+      </Box>
     </Box>
   );
 }

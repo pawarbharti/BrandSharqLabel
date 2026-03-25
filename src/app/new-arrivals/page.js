@@ -24,14 +24,7 @@ import { useTheme } from "@mui/material/styles";
 import ProductCard from "@/components/product/ProductCard";
 import { AppButton } from "@/components/common";
 import { useProducts } from "@/hooks/useProducts";
-
-const SORT_OPTIONS = [
-  { value: "newest", label: "Newest First" },
-  { value: "price-asc", label: "Price: Low to High" },
-  { value: "price-desc", label: "Price: High to Low" },
-  { value: "trending", label: "Trending" },
-  { value: "most-viewed", label: "Most Viewed" },
-];
+import { newArrivalsPageContent } from "@/workflow/pages/newArrivals";
 
 const getProductId = (product) => product?._id || product?.id || product?.productId;
 const getName = (product) => product?.name || "New Arrival";
@@ -70,7 +63,6 @@ const formatReleaseDate = (product) => {
 
 export default function NewArrivalsPage() {
   const theme = useTheme();
-  const isDark = theme.palette.mode === "dark";
   const { products, loading, error } = useProducts();
   const [sortBy, setSortBy] = useState("newest");
 
@@ -149,15 +141,13 @@ export default function NewArrivalsPage() {
       .slice(0, 8);
   }, [products]);
 
-  const styleAnchor = primaryGrid[0];
-
   return (
     <>
       <Box
         sx={{
           minHeight: { xs: "60vh", md: "70vh" },
           backgroundImage: (theme) =>
-            `linear-gradient(${theme.palette.brand.overlaySoft}, ${theme.palette.brand.overlayStrong}), url('/NewArrivals.jpeg')`,
+            `linear-gradient(${theme.palette.brand.overlaySoft}, ${theme.palette.brand.overlayStrong}), url('${newArrivalsPageContent.hero.imageSrc}')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           display: "flex",
@@ -168,24 +158,23 @@ export default function NewArrivalsPage() {
         <Container>
           <Box sx={{ maxWidth: 760 }}>
             <Typography sx={{ color: "primary.main", letterSpacing: 3, mb: 1 }}>
-              Drop Date: 28 February 2026
+              {newArrivalsPageContent.hero.dropDateLabel}
             </Typography>
             <Typography variant="h2" sx={{ fontWeight: 700, mb: 1.5 }}>
-              NEW ARRIVALS
+              {newArrivalsPageContent.hero.title}
             </Typography>
             <Typography sx={{ fontSize: { xs: 18, md: 22 }, mb: 1.5 }}>
-              The Latest Expressions of SHARQ
+              {newArrivalsPageContent.hero.subtitle}
             </Typography>
             <Typography sx={{ opacity: 0.86, mb: 3.5 }}>
-              Precision-led essentials crafted for the season shift. Built in
-              limited runs with a deliberate editorial lens.
+              {newArrivalsPageContent.hero.description}
             </Typography>
             <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-              <AppButton component={Link} href="/shop" sx={{ px: 4 }}>
-                Shop the Drop
+              <AppButton component={Link} href={newArrivalsPageContent.hero.ctaHref} sx={{ px: 4 }}>
+                {newArrivalsPageContent.hero.ctaLabel}
               </AppButton>
               <Chip
-                label={`Next Drop In: ${String(timeLeft.days).padStart(2, "0")} Days ${String(
+                label={`${newArrivalsPageContent.hero.nextDropPrefix} ${String(timeLeft.days).padStart(2, "0")} Days ${String(
                   timeLeft.hours
                 ).padStart(2, "0")} Hours`}
                 sx={(theme) => ({ bgcolor: theme.palette.brand.navGlass, color: "background.paper" })}
@@ -213,15 +202,21 @@ export default function NewArrivalsPage() {
           >
             <Box>
               <Typography sx={{ fontWeight: 700, mb: 0.5 }}>
-                Drop 02 - February Edit
+                {newArrivalsPageContent.dropCard.title}
               </Typography>
               <Typography sx={{ opacity: 0.8 }}>
-                Limited Pieces. No Restocks. Updated weekly.
+                {newArrivalsPageContent.dropCard.description}
               </Typography>
             </Box>
             <Stack direction="row" spacing={1}>
-              <Chip color="error" label="Limited Stock" />
-              <Chip variant="outlined" label="Updated Weekly" />
+              {newArrivalsPageContent.dropCard.chips.map((chip) => (
+                <Chip
+                  key={chip.label}
+                  color={chip.color}
+                  label={chip.label}
+                  variant={chip.variant}
+                />
+              ))}
             </Stack>
           </CardContent>
         </Card>
@@ -240,7 +235,7 @@ export default function NewArrivalsPage() {
           >
             <Box>
               <Typography variant="h4" sx={{ mb: 0.5, letterSpacing: 2 }}>
-                Just Dropped
+                {newArrivalsPageContent.sections.justDroppedTitle}
               </Typography>
               <Typography sx={{ opacity: 0.8 }}>
                 {newProducts.length} pieces from the latest release.
@@ -254,7 +249,7 @@ export default function NewArrivalsPage() {
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
-                {SORT_OPTIONS.map((option) => (
+                {newArrivalsPageContent.sortOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
                   </MenuItem>
@@ -278,7 +273,7 @@ export default function NewArrivalsPage() {
                       <ProductCard product={product} />
                     </Box>
                     <Typography sx={{ mt: 1, opacity: 0.75, fontSize: 13 }}>
-                      Release: {formatReleaseDate(product)}
+                      {newArrivalsPageContent.sections.releasePrefix} {formatReleaseDate(product)}
                     </Typography>
                   </Grid>
                 ))}
@@ -300,15 +295,15 @@ export default function NewArrivalsPage() {
                             pointerEvents: "none",
                           }}
                         >
-                          <Chip size="small" label="NEW" color="secondary" />
+                          <Chip size="small" label={newArrivalsPageContent.labels.new} color="secondary" />
                           {isLimited(product) ? (
-                            <Chip size="small" label="Limited" color="error" />
+                            <Chip size="small" label={newArrivalsPageContent.labels.limited} color="error" />
                           ) : null}
                         </Box>
                         <ProductCard product={product} />
                       </Box>
                       <Typography sx={{ mt: 1, opacity: 0.75, fontSize: 13 }}>
-                        Release: {formatReleaseDate(product)}
+                        {newArrivalsPageContent.sections.releasePrefix} {formatReleaseDate(product)}
                       </Typography>
                     </Grid>
                   ))}
@@ -322,14 +317,14 @@ export default function NewArrivalsPage() {
       <Box sx={{ py: 6, bgcolor: (theme) => theme.palette.brand.borderSoft }}>
         <Container maxWidth="xl">
           <Typography variant="h4" sx={{ mb: 1 }}>
-            Trending Now
+            {newArrivalsPageContent.sections.trendingTitle}
           </Typography>
           <Typography sx={{ opacity: 0.78, mb: 3 }}>
-            Most added to cart and most viewed.
+            {newArrivalsPageContent.sections.trendingDescription}
           </Typography>
 
           <Typography variant="h6" sx={{ mb: 1.5 }}>
-            Most Added To Cart
+            {newArrivalsPageContent.sections.mostAddedTitle}
           </Typography>
           <Box
             sx={{
@@ -357,12 +352,12 @@ export default function NewArrivalsPage() {
                 </Card>
               ))
             ) : (
-              <Typography sx={{ opacity: 0.7 }}>No cart trend data yet.</Typography>
+              <Typography sx={{ opacity: 0.7 }}>{newArrivalsPageContent.states.noCartTrendData}</Typography>
             )}
           </Box>
 
           <Typography variant="h6" sx={{ mb: 1.5 }}>
-            Most Viewed
+            {newArrivalsPageContent.sections.mostViewedTitle}
           </Typography>
           <Box
             sx={{
@@ -389,7 +384,7 @@ export default function NewArrivalsPage() {
                 </Card>
               ))
             ) : (
-              <Typography sx={{ opacity: 0.7 }}>No view data yet.</Typography>
+              <Typography sx={{ opacity: 0.7 }}>{newArrivalsPageContent.states.noViewData}</Typography>
             )}
           </Box>
         </Container>
@@ -397,11 +392,10 @@ export default function NewArrivalsPage() {
 
       <Box sx={{ py: 6, textAlign: "center", px: 3, bgcolor: "background.default" }}>
         <Typography variant="h4" sx={{ mb: 1, letterSpacing: 2, color: "primary.main" }}>
-          Designed To Lead
+          {newArrivalsPageContent.cta.title}
         </Typography>
         <Typography sx={{ maxWidth: 820, mx: "auto", opacity: 0.82 }}>
-          Each drop is curated with intent. No excess. Just precision, presence, and
-          identity.
+          {newArrivalsPageContent.cta.description}
         </Typography>
       </Box>
     </>

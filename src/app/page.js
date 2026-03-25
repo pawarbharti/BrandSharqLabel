@@ -2,8 +2,11 @@
 import Link from "next/link";
 import { Box, Typography, Container } from "@mui/material";
 import { AppButton } from "@/components/common";
+import { homePageContent } from "@/workflow/pages/home";
 
 export default function HomePage() {
+  const { video, hero } = homePageContent;
+
   return (
     <Box
       sx={{
@@ -31,8 +34,8 @@ export default function HomePage() {
           zIndex: 0,
         }}
       >
-        <source src="/homevideo.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
+        <source src={video.src} type="video/mp4" />
+        {video.fallbackText}
       </video>
 
       {/* 🌑 Dark Overlay */}
@@ -59,7 +62,7 @@ export default function HomePage() {
             lineHeight: 1.1,
           }}
         >
-          SHARQ LABEL
+          {hero.title}
         </Typography>
 
         <Typography
@@ -72,16 +75,16 @@ export default function HomePage() {
             lineHeight: 1,
           }}
         >
-          BORN TO BE DIFFERENT
+          {hero.eyebrow}
         </Typography>
 
         <Typography variant="h5" sx={{ mt: 3, mb: 4 }}>
-          Luxury Menswear Redefined
+          {hero.subtitle}
         </Typography>
 
-        <Link href="/collection" style={{ textDecoration: "none" }}>
+        <Link href={hero.ctaHref} style={{ textDecoration: "none" }}>
           <AppButton sx={{ px: 4, py: 1.5, fontWeight: 600, letterSpacing: 1 }}>
-            Explore Collection
+            {hero.ctaLabel}
           </AppButton>
         </Link>
       </Container>

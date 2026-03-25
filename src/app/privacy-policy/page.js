@@ -1,42 +1,36 @@
-import { Box, Container, Stack, Typography } from "@mui/material";
+"use client";
+
+import { Box, Container, Divider, Grid, Paper, Typography, useTheme } from "@mui/material";
+import { privacyPolicyPageContent } from "@/workflow/pages/privacyPolicy";
 
 export default function PrivacyPolicyPage() {
-  return (
-    <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "background.default", minHeight: "70vh" }}>
-      <Container maxWidth="md">
-        <Typography variant="h3" sx={{ mb: 1 }}>
-          Privacy Policy
-        </Typography>
-        <Typography sx={{ opacity: 0.75, mb: 4 }}>
-          Last updated: March 9, 2026
-        </Typography>
+  const theme = useTheme();
+  const brand = theme.palette.brand;
 
-        <Stack spacing={3}>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Information We Collect</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              We collect account details, shipping information, and order data required to process your purchases.
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>How We Use Data</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              Your data is used for order fulfillment, customer support, fraud prevention, and service improvement.
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Data Sharing</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              We only share required information with payment gateways, logistics providers, and service partners.
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Your Rights</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              You may request access, correction, or deletion of your personal information by contacting support.
-            </Typography>
-          </Box>
-        </Stack>
+  return (
+    <Box sx={{ bgcolor: brand.bg }}>
+      <Box sx={{ py: { xs: 7, md: 10 }, background: `linear-gradient(135deg, ${brand.primary}14, ${brand.hover}10)`, borderBottom: `1px solid ${brand.borderSoft}` }}>
+        <Container maxWidth="md">
+          <Typography variant="h2" sx={{ color: brand.text, fontWeight: 700, textAlign: "center", fontSize: { xs: "2rem", sm: "2.75rem", md: "3.25rem" }, mb: 2 }}>
+            {privacyPolicyPageContent.hero.title}
+          </Typography>
+          <Divider sx={{ width: 80, mx: "auto", mb: 2.5, height: 3, borderColor: "transparent", background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})` }} />
+          <Typography sx={{ color: brand.textMuted, textAlign: "center" }}>
+            Last updated: {privacyPolicyPageContent.hero.updatedAt}
+          </Typography>
+        </Container>
+      </Box>
+      <Container maxWidth="md" sx={{ py: { xs: 5, md: 7 } }}>
+        <Grid container spacing={2.5}>
+          {privacyPolicyPageContent.sections.map((section) => (
+            <Grid item xs={12} key={section.title}>
+              <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: brand.surface, border: `1px solid ${brand.borderSoft}`, boxShadow: brand.shadowCard }}>
+                <Typography variant="h6" sx={{ mb: 1, color: brand.text, fontWeight: 600 }}>{section.title}</Typography>
+                <Typography sx={{ color: brand.textMuted, lineHeight: 1.8 }}>{section.body}</Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
       </Container>
     </Box>
   );

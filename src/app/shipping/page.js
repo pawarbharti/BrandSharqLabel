@@ -1,42 +1,42 @@
-import { Box, Container, Stack, Typography } from "@mui/material";
+"use client";
+
+import { Box, Container, Divider, Grid, Paper, Typography, useTheme } from "@mui/material";
+import { shippingPageContent } from "@/workflow/pages/shipping";
 
 export default function ShippingPage() {
-  return (
-    <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "background.default", minHeight: "70vh" }}>
-      <Container maxWidth="md">
-        <Typography variant="h3" sx={{ mb: 1 }}>
-          Shipping and Returns
-        </Typography>
-        <Typography sx={{ opacity: 0.75, mb: 4 }}>
-          Last updated: March 9, 2026
-        </Typography>
+  const theme = useTheme();
+  const brand = theme.palette.brand;
 
-        <Stack spacing={3}>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Shipping Timeline</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              Orders are usually processed within 1-2 business days and delivered within 3-7 business days.
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Shipping Charges</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              Shipping charges are calculated at checkout based on your location and selected service level.
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Returns and Exchanges</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              Eligible items can be returned or exchanged within 7 days of delivery if unworn and in original condition.
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ mb: 1 }}>Refund Process</Typography>
-            <Typography sx={{ opacity: 0.8 }}>
-              Refunds are issued after quality checks and may take 5-7 business days to reflect in your original payment method.
-            </Typography>
-          </Box>
-        </Stack>
+  return (
+    <Box sx={{ bgcolor: brand.bg }}>
+      <Box
+        sx={{
+          py: { xs: 7, md: 10 },
+          background: `linear-gradient(135deg, ${brand.primary}14, ${brand.hover}10)`,
+          borderBottom: `1px solid ${brand.borderSoft}`,
+        }}
+      >
+        <Container maxWidth="md">
+          <Typography variant="h2" sx={{ color: brand.text, fontWeight: 700, textAlign: "center", fontSize: { xs: "2rem", sm: "2.75rem", md: "3.25rem" }, mb: 2 }}>
+            {shippingPageContent.hero.title}
+          </Typography>
+          <Divider sx={{ width: 80, mx: "auto", mb: 2.5, height: 3, borderColor: "transparent", background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})` }} />
+          <Typography sx={{ color: brand.textMuted, textAlign: "center" }}>
+            Last updated: {shippingPageContent.hero.updatedAt}
+          </Typography>
+        </Container>
+      </Box>
+      <Container maxWidth="md" sx={{ py: { xs: 5, md: 7 } }}>
+        <Grid container spacing={2.5}>
+          {shippingPageContent.sections.map((section) => (
+            <Grid item xs={12} key={section.title}>
+              <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: brand.surface, border: `1px solid ${brand.borderSoft}`, boxShadow: brand.shadowCard }}>
+                <Typography variant="h6" sx={{ mb: 1, color: brand.text, fontWeight: 600 }}>{section.title}</Typography>
+                <Typography sx={{ color: brand.textMuted, lineHeight: 1.8 }}>{section.body}</Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
       </Container>
     </Box>
   );
