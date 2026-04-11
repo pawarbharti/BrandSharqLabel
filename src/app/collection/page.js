@@ -784,7 +784,7 @@ export default function CollectionPage() {
         </Container>
       </Box>
 
-      <Box
+      {/* <Box
         sx={{
           bgcolor: brand.surface,
           py: { xs: 6, md: 9 },
@@ -891,7 +891,7 @@ export default function CollectionPage() {
             ))}
           </Grid>
         </Container>
-      </Box>
+      </Box> */}
 
       <Box
         sx={{

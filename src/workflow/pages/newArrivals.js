@@ -8,14 +8,14 @@ export const newArrivalsPageContent = {
   ],
   hero: {
     imageSrc: "/NewArrivals.jpeg",
-    dropDateLabel: "Drop Date: 28 February 2026",
+    // dropDateLabel: "Drop Date: 28 February 2026",
     title: "NEW ARRIVALS",
     subtitle: "The Latest Expressions of SHARQ",
     description:
       "Precision-led essentials crafted for the season shift. Built in limited runs with a deliberate editorial lens.",
     ctaLabel: "Shop the Drop",
     ctaHref: "/shop",
-    nextDropPrefix: "Next Drop In:",
+    // nextDropPrefix: "Next Drop In:",
   },
   dropCard: {
     title: "Drop 02 - February Edit",

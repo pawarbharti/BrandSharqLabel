@@ -173,12 +173,12 @@ export default function NewArrivalsPage() {
               <AppButton component={Link} href={newArrivalsPageContent.hero.ctaHref} sx={{ px: 4 }}>
                 {newArrivalsPageContent.hero.ctaLabel}
               </AppButton>
-              <Chip
+              {/* <Chip
                 label={`${newArrivalsPageContent.hero.nextDropPrefix} ${String(timeLeft.days).padStart(2, "0")} Days ${String(
                   timeLeft.hours
                 ).padStart(2, "0")} Hours`}
                 sx={(theme) => ({ bgcolor: theme.palette.brand.navGlass, color: "background.paper" })}
-              />
+              /> */}
             </Stack>
           </Box>
         </Container>

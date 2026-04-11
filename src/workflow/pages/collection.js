@@ -48,7 +48,7 @@ export const collectionPageContent = {
     subtitle:
       "A collection built on clean architecture, sharp restraint, and quiet confidence.",
     quote: '"Precision in silhouette. Confidence in every line."',
-    storyTitle: "The Collection Story",
+    storyTitle: "The \"SHARQ\" Collection Story",
     storyDescription:
       "A study in quiet confidence and precise structure. This collection refines everyday dressing with controlled silhouettes, textured fabrics, and a palette drawn from dusk cityscapes and architectural shadows.",
     productsTitle: "Discover The Collection",
@@ -89,11 +89,11 @@ export const collectionPageContent = {
     { label: "Best Seller", iconKey: "bestSeller", color: "warning" },
     { label: "Limited Piece", iconKey: "limited", color: "error" },
   ],
-  craftSection: {
-    title: "Behind The Craft",
-    description:
-      "Material precision, technical stitching, and finishing discipline that defines our commitment to excellence.",
-  },
+  // craftSection: {
+  //   title: "Behind The Craft",
+  //   description:
+  //     "Material precision, technical stitching, and finishing discipline that defines our commitment to excellence.",
+  // },
   cta: {
     title: "Discover Your Identity",
     description:

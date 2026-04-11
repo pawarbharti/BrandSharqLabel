@@ -13,7 +13,7 @@ export const shopPageContent = {
     eyebrow: "REFINED. FEARLESS. DISTINCT.",
     subtitle: "Luxury is not what you wear. It is how you carry it.",
     quote: '"True luxury whispers. It does not shout."',
-    sectionTitle: "Discover The Collection",
+    sectionTitle: "Shop The Best of \"SHARQ\"",
   },
   filters: {
     title: "Filters & Sorting",
