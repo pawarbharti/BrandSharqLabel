@@ -5,8 +5,6 @@ import {
   Container,
   Divider,
   Grid,
-  Paper,
-  Stack,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -19,15 +17,17 @@ import { contactPageContent } from "@/workflow/pages/contact";
 export default function ContactPage() {
   const theme = useTheme();
   const brand = theme.palette.brand;
+
   const iconMap = {
-    email: <EmailOutlinedIcon sx={{ fontSize: 24 }} />,
-    phone: <PhoneOutlinedIcon sx={{ fontSize: 24 }} />,
-    address: <LocationOnOutlinedIcon sx={{ fontSize: 24 }} />,
-    hours: <AccessTimeOutlinedIcon sx={{ fontSize: 24 }} />,
+    email: <EmailOutlinedIcon sx={{ fontSize: 20 }} />,
+    phone: <PhoneOutlinedIcon sx={{ fontSize: 20 }} />,
+    address: <LocationOnOutlinedIcon sx={{ fontSize: 20 }} />,
+    hours: <AccessTimeOutlinedIcon sx={{ fontSize: 20 }} />,
   };
 
   return (
     <Box sx={{ bgcolor: brand.bg }}>
+      {/* HERO */}
       <Box
         sx={{
           py: { xs: 7, md: 10 },
@@ -49,6 +49,7 @@ export default function ContactPage() {
           >
             {contactPageContent.hero.title}
           </Typography>
+
           <Divider
             sx={{
               width: 80,
@@ -59,13 +60,15 @@ export default function ContactPage() {
               background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})`,
             }}
           />
+
           <Typography
             sx={{
               color: brand.textMuted,
               textAlign: "center",
-              maxWidth: 720,
+              maxWidth: 700,
               mx: "auto",
               lineHeight: 1.8,
+              fontSize: "0.95rem",
             }}
           >
             {contactPageContent.hero.description}
@@ -73,51 +76,101 @@ export default function ContactPage() {
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
-        <Grid container spacing={{ xs: 2.5, md: 3 }}>
-          {contactPageContent.items.map((item) => (
-            <Grid item xs={12} sm={6} key={item.title}>
-              <Paper
-                elevation={0}
-                sx={{
-                  height: "100%",
-                  p: 3,
-                  borderRadius: 3,
-                  bgcolor: brand.surface,
-                  border: `1px solid ${brand.borderSoft}`,
-                  boxShadow: brand.shadowCard,
-                }}
-              >
-                <Stack direction="row" spacing={2} alignItems="flex-start">
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "16px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: brand.primary,
-                      bgcolor: `${brand.primary}10`,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {iconMap[item.iconKey]}
-                  </Box>
-                  <Box>
-                    <Typography variant="h6" sx={{ color: brand.text, fontWeight: 600, mb: 0.75 }}>
-                      {item.title}
-                    </Typography>
-                    <Typography sx={{ color: brand.textMuted, lineHeight: 1.8 }}>
-                      {item.value}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
+      {/* CONTACT LIST */}
+      {/* CONTACT LIST */}
+{/* CONTACT LIST */}
+<Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+  <Box
+    sx={{
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      gap: 2,
+    }}
+  >
+    {contactPageContent.items.map((item, index) => (
+      <Box
+        key={item.title}
+        sx={{
+          flex: {
+            xs: "1 1 100%",
+            sm: "1 1 calc(50% - 8px)",
+            md: "1 1 calc(25% - 12px)", // 4 items in one row
+          },
+          p: 2.5,
+          borderRadius: 3,
+          bgcolor: brand.surface,
+          border: `1px solid ${brand.borderSoft}`,
+          boxShadow: brand.shadowCard,
+          transition: "all 0.3s ease",
+          "&:hover": {
+            transform: "translateY(-4px)",
+            boxShadow: brand.shadowCardStrong,
+          },
+        }}
+      >
+        {/* Top Row */}
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
+          {/* Icon */}
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: "10px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: brand.primary,
+              bgcolor: `${brand.primary}10`,
+              mr: 1,
+            }}
+          >
+            {iconMap[item.iconKey]}
+          </Box>
+
+          {/* Title */}
+          <Typography
+            sx={{
+              color: brand.text,
+              fontWeight: 600,
+              fontSize: "0.95rem",
+            }}
+          >
+            {item.title}
+          </Typography>
+        </Box>
+
+        {/* Value */}
+        <Typography
+          component={
+            item.iconKey === "email" || item.iconKey === "phone"
+              ? "a"
+              : "p"
+          }
+          href={
+            item.iconKey === "email"
+              ? `mailto:${item.value}`
+              : item.iconKey === "phone"
+              ? `tel:${item.value}`
+              : undefined
+          }
+          sx={{
+            color: brand.textMuted,
+            lineHeight: 1.8,
+            fontSize: "0.9rem",
+            textDecoration: "none",
+            wordBreak: "break-word",
+            "&:hover": {
+              color: brand.primary,
+            },
+          }}
+        >
+          {item.value}
+        </Typography>
+      </Box>
+    ))}
+  </Box>
+</Container>
     </Box>
   );
 }

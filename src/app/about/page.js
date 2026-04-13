@@ -4,9 +4,6 @@ import {
   Box,
   Container,
   Divider,
-  Grid,
-  Paper,
-  Stack,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -18,14 +15,16 @@ import { aboutPageContent } from "@/workflow/pages/about";
 export default function AboutPage() {
   const theme = useTheme();
   const brand = theme.palette.brand;
+
   const iconMap = {
-    vision: <AutoAwesomeOutlinedIcon sx={{ fontSize: 28 }} />,
-    craft: <CheckroomOutlinedIcon sx={{ fontSize: 28 }} />,
-    promise: <VerifiedOutlinedIcon sx={{ fontSize: 28 }} />,
+    vision: <AutoAwesomeOutlinedIcon sx={{ fontSize: 22 }} />,
+    craft: <CheckroomOutlinedIcon sx={{ fontSize: 22 }} />,
+    promise: <VerifiedOutlinedIcon sx={{ fontSize: 22 }} />,
   };
 
   return (
     <Box sx={{ bgcolor: brand.bg }}>
+      {/* HERO SECTION */}
       <Box
         sx={{
           py: { xs: 7, md: 10 },
@@ -34,6 +33,7 @@ export default function AboutPage() {
         }}
       >
         <Container maxWidth="md">
+          {/* Title */}
           <Typography
             variant="h2"
             sx={{
@@ -47,77 +47,144 @@ export default function AboutPage() {
           >
             {aboutPageContent.hero.title}
           </Typography>
+
+          {/* Divider */}
           <Divider
             sx={{
               width: 80,
               mx: "auto",
-              mb: 3,
-              borderColor: "transparent",
+              mb: 4,
               height: 3,
+              borderColor: "transparent",
               background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})`,
             }}
           />
-          <Typography
+
+          {/* CONTENT */}
+          <Box
             sx={{
-              color: brand.textMuted,
-              textAlign: "center",
               maxWidth: 760,
               mx: "auto",
-              lineHeight: 1.8,
-              fontSize: { xs: "1rem", md: "1.1rem" },
+              textAlign: { xs: "left", md: "center" },
             }}
           >
-            {aboutPageContent.hero.description}
-          </Typography>
+            {/* Paragraphs */}
+            {aboutPageContent.hero.description.map((para, index) => (
+              <Typography
+                key={index}
+                sx={{
+                  color: brand.textMuted,
+                  lineHeight: 1.8,
+                  fontSize: { xs: "1rem", md: "1.1rem" },
+                  mb: 3,
+                }}
+              >
+                {para}
+              </Typography>
+            ))}
+
+            {/* Statements */}
+            {aboutPageContent.hero.statements.map((line, index) => (
+              <Typography
+                key={index}
+                sx={{
+                  color: brand.text,
+                  fontWeight: 500,
+                  mb: 1.5,
+                }}
+              >
+                {line}
+              </Typography>
+            ))}
+
+            {/* Tagline */}
+            <Typography
+              sx={{
+                mt: 2,
+                color: brand.textMuted,
+                fontStyle: "italic",
+              }}
+            >
+              {aboutPageContent.hero.tagline}
+            </Typography>
+          </Box>
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
-        <Grid container spacing={{ xs: 2.5, md: 3 }}>
-          {aboutPageContent.values.map((item) => (
-            <Grid item xs={12} md={4} key={item.title}>
-              <Paper
-                elevation={0}
+      {/* VALUES SECTION */}
+      <Container maxWidth="md" sx={{ py: { xs: 6, md: 8 } }}>
+        {aboutPageContent.values.map((item, index) => (
+          <Box
+            key={item.title}
+            sx={{
+              mb: 5,
+              pb: 3,
+              borderBottom:
+                index !== aboutPageContent.values.length - 1
+                  ? `1px solid ${brand.borderSoft}`
+                  : "none",
+
+              // OPTIONAL premium touch 👇
+              // borderLeft: `3px solid ${brand.primary}`,
+              // pl: 2,
+            }}
+          >
+            {/* Header */}
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
+              {/* Number */}
+              <Typography
                 sx={{
-                  height: "100%",
-                  p: { xs: 3, md: 3.5 },
-                  borderRadius: 3,
-                  bgcolor: brand.surface,
-                  border: `1px solid ${brand.borderSoft}`,
-                  boxShadow: brand.shadowCard,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-6px)",
-                    boxShadow: brand.shadowCardStrong,
-                  },
+                  fontWeight: 700,
+                  color: brand.primary,
+                  mr: 1.5,
+                  minWidth: 30,
                 }}
               >
-                <Stack spacing={2}>
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: "18px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: brand.primary,
-                      bgcolor: `${brand.primary}10`,
-                    }}
-                  >
-                    {iconMap[item.iconKey]}
-                  </Box>
-                  <Typography variant="h5" sx={{ color: brand.text, fontWeight: 600 }}>
-                    {item.title}
-                  </Typography>
-                  <Typography sx={{ color: brand.textMuted, lineHeight: 1.8 }}>
-                    {item.body}
-                  </Typography>
-                </Stack>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
+                {(index + 1).toString().padStart(2, "0")}
+              </Typography>
+
+              {/* Icon */}
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "12px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: brand.primary,
+                  bgcolor: `${brand.primary}10`,
+                  mr: 1.5,
+                }}
+              >
+                {iconMap[item.iconKey]}
+              </Box>
+
+              {/* Title */}
+              <Typography
+                variant="h6"
+                sx={{
+                  color: brand.text,
+                  fontWeight: 600,
+                }}
+              >
+                {item.title}
+              </Typography>
+            </Box>
+
+            {/* Body */}
+            <Typography
+              sx={{
+                color: brand.textMuted,
+                lineHeight: 1.9,
+                fontSize: "0.95rem",
+                pl: 6,
+              }}
+            >
+              {item.body}
+            </Typography>
+          </Box>
+        ))}
       </Container>
     </Box>
   );

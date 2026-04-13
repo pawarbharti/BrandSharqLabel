@@ -21,6 +21,7 @@ import {
   Twitter,
   LinkedIn,
   YouTube,
+  WhatsApp 
 } from "@mui/icons-material";
 
 function FooterLink({ href, children }) {
@@ -96,11 +97,12 @@ export default function Footer() {
       : "/sharq_logo_dark.png";
 
   const socialLinks = [
-    { icon: Facebook, href: "https://facebook.com", label: "Facebook" },
-    { icon: Instagram, href: "https://instagram.com", label: "Instagram" },
-    { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
-    { icon: LinkedIn, href: "https://linkedin.com", label: "LinkedIn" },
-    { icon: YouTube, href: "https://youtube.com", label: "YouTube" },
+    // { icon: Facebook, href: "https://facebook.com", label: "Facebook" },
+    { icon: Instagram, href: "https://instagram.com/sharqlabel", label: "Instagram" },
+    // { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
+    // { icon: LinkedIn, href: "https://linkedin.com", label: "LinkedIn" },
+    // { icon: YouTube, href: "https://youtube.com", label: "YouTube" },
+    { icon: WhatsApp,href: "https://wa.me/917678294158",label: "WhatsApp"},
   ];
 
   return (
@@ -314,12 +316,6 @@ export default function Footer() {
           </Typography>
           <Typography component={Link} href="/terms">
             Terms
-          </Typography>
-          <Typography component={Link} href="/cookies">
-            Cookies
-          </Typography>
-          <Typography component={Link} href="/sitemap">
-            Sitemap
           </Typography>
         </Stack>
       </Box>

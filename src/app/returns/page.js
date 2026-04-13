@@ -4,29 +4,18 @@ import {
   Box,
   Container,
   Divider,
-  Grid,
-  Paper,
   Typography,
   useTheme,
 } from "@mui/material";
-import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
-import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
-import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
-import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import { returnsPageContent } from "@/workflow/pages/returns";
 
 export default function ReturnsPage() {
   const theme = useTheme();
   const brand = theme.palette.brand;
-  const iconMap = {
-    returnWindow: <AssignmentReturnOutlinedIcon sx={{ fontSize: 28 }} />,
-    exchangeEligibility: <Inventory2OutlinedIcon sx={{ fontSize: 28 }} />,
-    qualityCheck: <TaskAltOutlinedIcon sx={{ fontSize: 28 }} />,
-    refundTimeline: <PaymentsOutlinedIcon sx={{ fontSize: 28 }} />,
-  };
 
   return (
     <Box sx={{ bgcolor: brand.bg }}>
+      {/* HERO */}
       <Box
         sx={{
           py: { xs: 7, md: 10 },
@@ -42,12 +31,12 @@ export default function ReturnsPage() {
               fontWeight: 700,
               textAlign: "center",
               fontSize: { xs: "2rem", sm: "2.75rem", md: "3.25rem" },
-              letterSpacing: { xs: 1.5, md: 3 },
               mb: 2,
             }}
           >
             {returnsPageContent.hero.title}
           </Typography>
+
           <Divider
             sx={{
               width: 80,
@@ -58,14 +47,15 @@ export default function ReturnsPage() {
               background: `linear-gradient(90deg, ${brand.gradientStart}, ${brand.gradientEnd})`,
             }}
           />
+
           <Typography
             sx={{
               color: brand.textMuted,
               textAlign: "center",
-              maxWidth: 760,
+              maxWidth: 700,
               mx: "auto",
               lineHeight: 1.8,
-              fontSize: { xs: "1rem", md: "1.05rem" },
+              fontSize: "0.95rem",
             }}
           >
             {returnsPageContent.hero.description}
@@ -73,124 +63,154 @@ export default function ReturnsPage() {
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
-        <Grid container spacing={{ xs: 2.5, md: 3 }}>
-          {returnsPageContent.policyBlocks.map((item) => (
-            <Grid item xs={12} sm={6} key={item.title}>
-              <Paper
-                elevation={0}
+      {/* POLICY SECTIONS */}
+      <Container maxWidth="md" sx={{ py: { xs: 6, md: 8 } }}>
+        {returnsPageContent.policyBlocks.map((section, index) => (
+          <Box
+            key={section.title}
+            sx={{
+              mb: 5,
+              pb: 3,
+              borderBottom:
+                index !== returnsPageContent.policyBlocks.length - 1
+                  ? `1px solid ${brand.borderSoft}`
+                  : "none",
+            }}
+          >
+            {/* Header */}
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
+              <Typography
                 sx={{
-                  height: "100%",
-                  p: 3,
-                  borderRadius: 3,
-                  bgcolor: brand.surface,
-                  border: `1px solid ${brand.borderSoft}`,
-                  boxShadow: brand.shadowCard,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-6px)",
-                    boxShadow: brand.shadowCardStrong,
-                  },
+                  fontWeight: 700,
+                  color: brand.primary,
+                  mr: 1.5,
+                  minWidth: 30,
                 }}
               >
-                <Box
-                  sx={{
-                    width: 54,
-                    height: 54,
-                    borderRadius: "18px",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: brand.primary,
-                    bgcolor: `${brand.primary}10`,
-                    mb: 2,
-                  }}
-                >
-                  {iconMap[item.iconKey]}
-                </Box>
-                <Typography
-                  variant="h6"
-                  sx={{ color: brand.text, fontWeight: 600, mb: 1 }}
-                >
-                  {item.title}
-                </Typography>
-                <Typography sx={{ color: brand.textMuted, lineHeight: 1.8 }}>
-                  {item.body}
-                </Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
+                {(index + 1).toString().padStart(2, "0")}
+              </Typography>
 
-        <Paper
-          elevation={0}
-          sx={{
-            mt: 4,
-            p: { xs: 3, md: 4 },
-            borderRadius: 3,
-            bgcolor: brand.surface,
-            border: `1px solid ${brand.borderSoft}`,
-            boxShadow: brand.shadowCard,
-          }}
-        >
+              <Typography
+                variant="h6"
+                sx={{ color: brand.text, fontWeight: 600 }}
+              >
+                {section.title}
+              </Typography>
+            </Box>
+
+            {/* Body */}
+            {section.body && (
+              <Typography
+                sx={{
+                  color: brand.textMuted,
+                  lineHeight: 1.9,
+                  fontSize: "0.95rem",
+                }}
+              >
+                {section.body}
+              </Typography>
+            )}
+
+            {/* Points */}
+            {section.points && (
+              <Box sx={{ mt: 1 }}>
+                {section.points.map((point, i) => (
+                  <Typography
+                    key={i}
+                    sx={{
+                      color: brand.textMuted,
+                      lineHeight: 1.9,
+                      fontSize: "0.95rem",
+                      pl: 2,
+                      position: "relative",
+                      mb: 0.5,
+                      "&::before": {
+                        content: '"•"',
+                        position: "absolute",
+                        left: 0,
+                        color: brand.primary,
+                      },
+                    }}
+                  >
+                    {point}
+                  </Typography>
+                ))}
+              </Box>
+            )}
+          </Box>
+        ))}
+
+        {/* STEPS */}
+        <Box sx={{ mt: 6 }}>
           <Typography
             variant="h5"
-            sx={{ color: brand.text, fontWeight: 600, mb: 2 }}
+            sx={{ color: brand.text, fontWeight: 600, mb: 3 }}
           >
             {returnsPageContent.stepsTitle}
           </Typography>
-          <Grid container spacing={2}>
-            {returnsPageContent.steps.map((step, index) => (
-              <Grid item xs={12} md={6} key={step}>
-                <Box
-                  sx={{
-                    p: 2.5,
-                    borderRadius: 2.5,
-                    bgcolor: `${brand.primary}08`,
-                    border: `1px solid ${brand.borderSoft}`,
-                    height: "100%",
-                  }}
-                >
-                  <Typography
-                    sx={{ color: brand.primary, fontWeight: 700, mb: 1 }}
-                  >
-                    Step {index + 1}
-                  </Typography>
-                  <Typography sx={{ color: brand.textMuted, lineHeight: 1.8 }}>
-                    {step}
-                  </Typography>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
 
-        <Paper
-          elevation={0}
-          sx={{
-            mt: 4,
-            p: { xs: 3, md: 4 },
-            borderRadius: 3,
-            bgcolor: brand.surface,
-            border: `1px solid ${brand.borderSoft}`,
-            boxShadow: brand.shadowCard,
-          }}
-        >
+          {returnsPageContent.steps.map((step, index) => (
+            <Box
+              key={step}
+              sx={{
+                mb: 3,
+                pb: 2,
+                borderBottom: `1px dashed ${brand.borderSoft}`,
+              }}
+            >
+              <Typography
+                sx={{
+                  color: brand.primary,
+                  fontWeight: 700,
+                  mb: 0.5,
+                }}
+              >
+                Step {(index + 1).toString().padStart(2, "0")}
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: brand.textMuted,
+                  lineHeight: 1.8,
+                }}
+              >
+                {step}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {/* NOTES */}
+        <Box sx={{ mt: 6 }}>
           <Typography
             variant="h5"
             sx={{ color: brand.text, fontWeight: 600, mb: 2 }}
           >
             {returnsPageContent.notesTitle}
           </Typography>
+
           {returnsPageContent.notes.map((note, index) => (
             <Typography
               key={note}
-              sx={{ color: brand.textMuted, lineHeight: 1.9, mb: index < returnsPageContent.notes.length - 1 ? 1.5 : 0 }}
+              sx={{
+                color: brand.textMuted,
+                lineHeight: 1.9,
+                mb:
+                  index !== returnsPageContent.notes.length - 1 ? 1.5 : 0,
+                pl: 2,
+                position: "relative",
+                "&::before": {
+                  content: '"•"',
+                  position: "absolute",
+                  left: 0,
+                  color: brand.primary,
+                },
+              }}
             >
               {note}
             </Typography>
           ))}
-        </Paper>
+        </Box>
       </Container>
     </Box>
   );

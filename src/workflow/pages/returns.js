@@ -1,42 +1,62 @@
 export const returnsPageContent = {
   hero: {
-    title: "Returns and Refunds",
+    title: "Returns and Refund Policy",
     description:
-      "We keep our return process clear and fair. If something is not the right fit, we will help you with a return, exchange, or refund based on the product condition and order eligibility.",
+      "At SharqLabel, your satisfaction matters to us. If something isn’t right, we’re here to help with easy returns, exchanges, and refunds based on eligibility.",
   },
+
   policyBlocks: [
     {
-      iconKey: "returnWindow",
-      title: "Return Window",
-      body: "Eligible products can be returned within 7 days of delivery. Items must be unused, unwashed, and returned with original tags and packaging intact.",
+      iconKey: "returnEligibility",
+      title: "Return Eligibility",
+      points: [
+        "You received a damaged product",
+        "You received an incorrect item",
+        "Size issues (only if the request is genuine and the product is unused)",
+        "Item must be unused, unworn, and in original condition",
+        "All tags and packaging should be intact",
+        "Return request must be raised within 5 days of delivery",
+      ],
     },
     {
-      iconKey: "exchangeEligibility",
-      title: "Exchange Eligibility",
-      body: "Size exchanges are supported for eligible products based on stock availability. If the requested size is unavailable, we will help you with an alternative or refund path.",
+      iconKey: "returnProcess",
+      title: "Easy Return Process",
+      points: [
+        "Share your order number",
+        "Provide clear photos of the product",
+        "Our team will review and arrange a return pickup where applicable",
+      ],
     },
     {
-      iconKey: "qualityCheck",
-      title: "Quality Check",
-      body: "All returned items go through a quick inspection before approval. Products showing signs of wear, damage, washing, or missing tags may not qualify for return or exchange.",
+      iconKey: "exchangePolicy",
+      title: "Exchange Policy",
+      body:
+        "We offer exchanges for size issues (subject to availability). If the required size is not available, you may choose a refund or store credit.",
     },
     {
-      iconKey: "refundTimeline",
-      title: "Refund Timeline",
-      body: "Approved refunds are processed to the original payment method after inspection. Most refunds reflect within 5 to 7 business days, depending on your bank or provider.",
+      iconKey: "refundPolicy",
+      title: "Refund Policy",
+      points: [
+        "Prepaid orders: Refund will be processed to the original payment method within 5–7 business days after quality check",
+        "COD orders: Refund will be issued via bank transfer or store credit",
+      ],
     },
   ],
+
   stepsTitle: "How The Process Works",
   steps: [
-    "Raise a request from your account or contact support with your order ID.",
-    "Our team verifies eligibility and confirms pickup or return instructions.",
-    "The returned item is inspected once received at our facility.",
-    "Your exchange is shipped or your refund is processed after approval.",
+    "Raise a request by contacting support with your order ID",
+    "Share product details and images for verification",
+    "Our team reviews and arranges return pickup (if applicable)",
+    "Item is inspected and exchange or refund is processed",
   ],
+
   notesTitle: "Important Notes",
   notes: [
-    "Return requests may be declined for final-sale items, custom pieces, gift cards, or products returned outside the stated window.",
-    "If you receive a damaged, defective, or incorrect item, contact us as soon as possible with your order ID and clear product images.",
-    "For support, email info@sharqlabel.com or reach us through your account order history for faster assistance.",
+    "Returns will not be accepted if the product is used, washed, or damaged by the customer",
+    "Requests raised after 5 days of delivery will not be accepted",
+    "Orders can be cancelled only before dispatch. Once shipped, cancellation is not possible",
+    "We reserve the right to decline returns that do not meet our policy criteria",
+    "For any assistance, contact us at info@sharqlabel.com",
   ],
 };
