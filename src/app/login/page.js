@@ -310,7 +310,7 @@ export default function LoginPage() {
                 },
               }}
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? "Signing in..." : "Log in"}
             </AppButton>
 
             <Divider 

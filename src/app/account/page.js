@@ -47,6 +47,13 @@ import { AppButton, AppInput, useToast } from "@/components/common";
 import { useAuth } from "@/context/AuthContext";
 import { addressesApi, createReturnApi, getAccountApi, getReturnsApi } from "@/lib/api";
 import { WishlistContext } from "@/context/WishlistContext";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
 
 const TABS = [
   { key: "dashboard", label: "Dashboard", icon: <DashboardOutlinedIcon /> },
@@ -164,6 +171,7 @@ export default function AccountPage() {
   const { wishlist } = useContext(WishlistContext);
   
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -293,11 +301,20 @@ export default function AccountPage() {
 
   const onTabClick = async (tab) => {
     if (tab === "logout") {
-      await handleLogoutTab();
+      setLogoutDialogOpen(true);
       return;
     }
     setActiveTab(tab);
     if (isMobile) setMobileDrawerOpen(false);
+  };
+  const handleConfirmLogout = async () => {
+    setLogoutDialogOpen(false);
+    await logout();
+    router.push("/");
+  };
+
+  const handleCancelLogout = () => {
+    setLogoutDialogOpen(false);
   };
 
   const saveAddress = async () => {
@@ -707,7 +724,7 @@ export default function AccountPage() {
                     </Grid>
 
                     {/* Loyalty & Rewards Card */}
-                    <Grow in timeout={700}>
+                    {/* <Grow in timeout={700}>
                       <Card 
                         sx={{ 
                           ...panelCardSx, 
@@ -758,7 +775,7 @@ export default function AccountPage() {
                           </Stack>
                         </CardContent>
                       </Card>
-                    </Grow>
+                    </Grow> */}
                   </Stack>
                 )}
 
@@ -888,6 +905,7 @@ export default function AccountPage() {
                     </Card>
                   </Grow>
                 )}
+                
 
                 {/* Addresses Tab */}
                 {activeTab === "addresses" && (
@@ -1267,6 +1285,31 @@ export default function AccountPage() {
           </Grid>
         </Grid>
       </Container>
+      <Dialog
+  open={logoutDialogOpen}
+  onClose={handleCancelLogout}
+  maxWidth="xs"
+  fullWidth
+>
+  <DialogTitle sx={{ fontWeight: 700 }}>
+    Confirm Logout
+  </DialogTitle>
+
+  <DialogContent>
+    <DialogContentText>
+      Are you sure you want to logout from your account?
+    </DialogContentText>
+  </DialogContent>
+
+  <DialogActions sx={{ px: 3, pb: 2 }}>
+    <AppButton variant="outlined" onClick={handleCancelLogout}>
+      Cancel
+    </AppButton>
+    <AppButton color="error" onClick={handleConfirmLogout}>
+      Logout
+    </AppButton>
+  </DialogActions>
+</Dialog>
     </Box>
   );
 }

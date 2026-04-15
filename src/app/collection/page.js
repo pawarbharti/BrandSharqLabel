@@ -286,75 +286,71 @@ export default function CollectionPage() {
             </Typography>
           </Box>
 
-          <Grid container spacing={{ xs: 2, sm: 3 }}>
+          <Grid container spacing={{ xs: 2, sm: 2.5 }}>
             {collectionPageContent.features.map((feature, idx) => (
-              <Grid item xs={12} md={6} key={idx}>
+              <Grid item xs={12} sm={6} key={idx}>
                 <Paper
                   elevation={0}
                   sx={{
-                    height: "100%",
-                    p: { xs: 3, sm: 3.5 },
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 2,
+                    p: { xs: 2, sm: 2.5 },
+                    borderRadius: 3,
                     bgcolor: brand.surface,
                     border: `1px solid ${brand.borderSoft}`,
-                    borderRadius: 3,
                     boxShadow: brand.shadowCard,
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    flexDirection: "column",
+                    transition: "all 0.25s ease",
                     "&:hover": {
-                      transform: "translateY(-8px)",
+                      borderColor: brand.primary,
                       boxShadow: brand.shadowCardStrong,
-                      borderColor: brand.border,
                     },
                   }}
                 >
+                  {/* Icon */}
                   <Box
                     sx={{
-                      display: "inline-flex",
+                      width: 44,
+                      height: 44,
+                      borderRadius: "14px",
+                      display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      mb: 2,
-                      width: 58,
-                      height: 58,
-                      borderRadius: "18px",
+                      flexShrink: 0,
                       color: brand.primary,
-                      background: `linear-gradient(135deg, ${brand.primary}12, ${brand.hover}14)`,
+                      background: `${brand.primary}12`,
                     }}
                   >
                     {featureIconMap[feature.iconKey]}
                   </Box>
 
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      mb: 1.5,
-                      fontWeight: 600,
-                      color: brand.text,
-                      fontSize: { xs: "1.125rem", sm: "1.25rem" },
+                  {/* Content */}
+                  <Box sx={{ flex: 1 }}>
+                    <Typography
+                      sx={{
+                        fontWeight: 600,
+                        color: brand.text,
+                        fontSize: "1rem",
+                        mb: 0.5,
+                      }}
+                    >
+                      {feature.title}
+                    </Typography>
 
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {feature.title}
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      color: brand.textMuted,
-                      fontSize: { xs: "0.9375rem", sm: "1rem" },
-                      lineHeight: 1.7,
-
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {feature.description}
-                  </Typography>
+                    <Typography
+                      sx={{
+                        color: brand.textMuted,
+                        fontSize: "0.9rem",
+                        lineHeight: 1.6,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {feature.description}
+                    </Typography>
+                  </Box>
                 </Paper>
               </Grid>
             ))}
