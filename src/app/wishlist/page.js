@@ -335,7 +335,7 @@ export default function WishlistPage() {
           })}
         </Grid>
 
-        {recentlyViewed.length ? (
+        {/* {recentlyViewed.length ? (
           <Box sx={{ mt: 8 }}>
             <Typography variant="h5" sx={{ mb: 0.8 }}>
               Recently Viewed
@@ -363,7 +363,7 @@ export default function WishlistPage() {
               ))}
             </Grid>
           </Box>
-        ) : null}
+        ) : null} */}
       </Container>
 
       <Dialog open={sizeModal.open} onClose={closeSizeModal} fullWidth maxWidth="xs">
